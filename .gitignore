@@ -1,3 +1,6 @@
 
 ludii.trl
 ludii_preferences.json
+*.jar
+src/viewer/tests/
+*.png
