@@ -9,11 +9,15 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 public class Window extends JFrame implements ActionListener {
-    public Window(Display display, String title) {
+    private Viewer viewer;
+
+    public Window(Viewer viewer) {
+        this.viewer = viewer;
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
-        setTitle(title);
-        add(display);
+        setTitle(viewer.getTitle());
+        add(viewer.getDisplay());
         addMenuBar();
         pack();
         
@@ -59,7 +63,8 @@ public class Window extends JFrame implements ActionListener {
                 System.out.println(e.getActionCommand());
                 break;
             case "Export":
-                System.out.println(e.getActionCommand());
+                if(viewer.getTree() != null)
+                    viewer.export();
                 break;
             default:
                 break;

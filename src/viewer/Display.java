@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class Display extends JPanel implements ActionListener {
     public final int WIDTH = 1280;
@@ -15,20 +16,25 @@ public class Display extends JPanel implements ActionListener {
 
     private Viewer viewer;
 
+    private Timer timer = new Timer(75, this);
+
     public Display(Viewer viewer) {
         this.viewer = viewer;
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         this.setBackground(Color.WHITE);
         this.setDoubleBuffered(true);
         this.setFocusable(true);
+        this.timer.start();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D)g;
-        viewer.getTree().draw(g2);
-        g2.dispose();
+        if(viewer.getTree() != null) {
+            Graphics2D g2 = (Graphics2D)g;
+            viewer.getTree().draw(g2);
+            g2.dispose();
+        }
     }
 
     @Override

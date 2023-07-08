@@ -9,7 +9,7 @@ import other.context.Context;
 import other.move.Move;
 import utils.AIUtils;
 
-public class ExampleAI extends AI {
+public class Random extends AI {
     protected int player = -1;
     
     @Override
@@ -19,8 +19,9 @@ public class ExampleAI extends AI {
 		if (!game.isAlternatingMoveGame())
 			legalMoves = AIUtils.extractMovesForMover(legalMoves, player);
 		
-		final int r = ThreadLocalRandom.current().nextInt(legalMoves.size());
-		return legalMoves.get(r);
+		final int r = ThreadLocalRandom.current().nextInt(legalMoves.size());    
+
+		return legalMoves.get(r);  
     }
     
 }
