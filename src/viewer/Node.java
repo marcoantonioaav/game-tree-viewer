@@ -9,7 +9,7 @@ import java.util.List;
 
 import main.collections.ChunkSet;
 import other.context.Context;
-import other.state.container.ContainerFlatState;
+import other.state.container.ContainerState;
 
 public class Node {
     private Node father = null;
@@ -19,7 +19,8 @@ public class Node {
     private final int MARGIN = SIZE/4;
     private final int PADDING = SIZE/16;
     private final int STATE_SIZE = SIZE/3;
-    private final int FONT_SIZE = SIZE/10;
+    private final int LABEL_FONT_SIZE = SIZE/10;
+    private final int EVALUATION_FONT_SIZE = SIZE/8;
 
     public static final int EMPTY = 0;
     public static final int PLAYER_1 = 1;
@@ -64,7 +65,9 @@ public class Node {
 
     public BufferedImage getImage() {
         BufferedImage image = Utils.newWhiteImage(nodesToPixels(getTreeWidth()), nodesToPixels(getTreeHeight()));
-        Utils.drawNodeOnImage(this, image);
+        Graphics2D g2 = image.createGraphics();
+        draw(g2);
+        g2.dispose();
         return image;
     }
 
@@ -81,30 +84,30 @@ public class Node {
 
     private void drawLabel(Graphics2D g2) {
         if(label != "") {
-            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, FONT_SIZE));
+            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, LABEL_FONT_SIZE));
             int textWidth = (int)g2.getFontMetrics().getStringBounds(label, g2).getWidth();
             int textHeight = (int)g2.getFontMetrics().getStringBounds(label, g2).getHeight();
-            g2.drawString(label, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/4 - STATE_SIZE/2 - PADDING);
+            g2.drawString(label, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/3 - STATE_SIZE/2 - PADDING);
         }      
     }
 
     private void drawPlayouts(Graphics2D g2) {
         if(playouts > 0) {
             String playoutsString = wins+"/"+playouts;
-            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, FONT_SIZE));
+            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, EVALUATION_FONT_SIZE));
             int textWidth = (int)g2.getFontMetrics().getStringBounds(playoutsString, g2).getWidth();
             int textHeight = (int)g2.getFontMetrics().getStringBounds(playoutsString, g2).getHeight();
-            g2.drawString(playoutsString, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/4 + STATE_SIZE/2 + PADDING);
+            g2.drawString(playoutsString, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/3 + STATE_SIZE/2 + PADDING);
         }      
     }
 
     private void drawEvaluation(Graphics2D g2) {
         if(showEvaluation) {
             String evaluationString = evaluation+"";
-            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, FONT_SIZE));
+            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, EVALUATION_FONT_SIZE));
             int textWidth = (int)g2.getFontMetrics().getStringBounds(evaluationString, g2).getWidth();
             int textHeight = (int)g2.getFontMetrics().getStringBounds(evaluationString, g2).getHeight();
-            g2.drawString(evaluationString, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/4 + STATE_SIZE/2 + PADDING);
+            g2.drawString(evaluationString, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/3 + STATE_SIZE/2 + PADDING);
         }      
     }
 
@@ -149,13 +152,13 @@ public class Node {
     }
 
     public int getRootDistance() {
-        if(father == null)
+        if(isRoot())
             return 0;
         return 1 + father.getRootDistance();
     }
 
     public int getTreeMinX() throws Exception {
-        if(father == null)
+        if(isRoot())
             return 0;
         int minX = father.getTreeMinX();
         for(Node brother : father.getChildren()) {
@@ -167,7 +170,7 @@ public class Node {
     }
 
     public int getRootHeight() {
-        if(father == null)
+        if(isRoot())
             return getTreeHeight();
         else
             return father.getRootHeight();
@@ -196,9 +199,13 @@ public class Node {
     }
 
     public Node getRoot() {
-        if(father == null)
+        if(isRoot())
             return this;
         return father.getRoot();
+    }
+
+    public boolean isRoot() {
+        return father == null;
     }
 
     public void addChild(Node child) {
@@ -225,31 +232,31 @@ public class Node {
         this.state = state;
     }
 
-    public void setState(Context ludiiContext) {
-        if(ludiiContext.game().isCellGame()) {
-            ContainerFlatState containerState = ((ContainerFlatState)ludiiContext.state().containerStates()[0]);
-            ChunkSet pieces = containerState.cloneWhoCell();
-            ChunkSet emptyPieces = containerState.emptyChunkSetCell();
-            List<Integer> cells = new ArrayList<>();
-            for(int i=0; i < pieces.numChunks(); i++) {
-                int piece = pieces.getChunk(i);
-                if (emptyPieces.getChunk(i) != 0 || piece != 0)
-                    cells.add(piece);
+    public void setState(Context ludiiContext) { 
+        ContainerState containerState = ludiiContext.state().containerStates()[0];
+        ChunkSet pieces, emptyPieces;
+        if(ludiiContext.game().isVertexGame()) {
+            pieces = containerState.cloneWhoVertex();
+            emptyPieces = containerState.emptyChunkSetVertex();
+        }
+        else {
+            pieces = containerState.cloneWhoCell();
+            emptyPieces = containerState.emptyChunkSetCell();
+        }
+        List<Integer> cells = new ArrayList<>();
+        for(int i=0; i < pieces.numChunks(); i++) {
+            int piece = pieces.getChunk(i);
+            if (emptyPieces.getChunk(i) != 0 || piece != 0)
+                cells.add(piece);
+        }
+        int boardSize = (int)Math.sqrt(cells.size());
+        int[][] state = new int[boardSize][boardSize];
+        for(int i = 0; i<boardSize; i++) {
+            for(int j = 0; j<boardSize; j++) {
+                state[i][j] = cells.get(boardSize*((boardSize-1) - j) +  i);
             }
-            int boardSize = (int)Math.sqrt(cells.size());
-            int[][] state = new int[boardSize][boardSize];
-            for(int i = 0; i<boardSize; i++) {
-                for(int j = 0; j<boardSize; j++) {
-                    state[i][j] = cells.get(boardSize*((boardSize-1) - j) +  i);
-                }
-            }
-            this.state = state;
-        } else
-            try {
-                throw new Exception("Game type not supported");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        }
+        this.state = state;
     }
 
     public void setPlayouts(int wins, int playouts) {

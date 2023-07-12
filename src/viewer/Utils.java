@@ -22,13 +22,6 @@ public abstract class Utils {
         return image;
     }
 
-    public static BufferedImage drawNodeOnImage(Node node, BufferedImage image) {
-        Graphics2D g2 = image.createGraphics();
-        node.draw(g2);
-        g2.dispose();
-        return image;
-    }
-
     public static void saveImage(BufferedImage image, String folderPath, String imageName, String format) {
         File file = new File(folderPath+imageName+"."+format);
         try { 
