@@ -13,7 +13,7 @@ public class Minimax extends AI {
     protected int player = -1;
     private Game game;
 
-    public static final int DEPTH = 2;
+    public static final int DEPTH = 3;
 
     public static final float MAX = 1;
     public static final float MIN = -MAX;
@@ -38,7 +38,7 @@ public class Minimax extends AI {
         for(Move move : legalMoves) {
             Context newContext = new Context(context);
 			newContext.game().apply(newContext, move);
-            float score = minimax(newContext, DEPTH, MIN, MAX, false, tree);
+            float score = minimax(newContext, DEPTH-1, MIN, MAX, false, tree);
             if(score > bestScore) {
                 bestMove = move;
                 bestScore = score;

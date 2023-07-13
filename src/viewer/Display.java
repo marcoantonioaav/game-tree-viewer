@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class Display extends JPanel implements ActionListener {
-    public final int WIDTH = 1280;
+    public final int WIDTH = 720;
     public final int HEIGHT = 720;
 
     private Viewer viewer;
@@ -32,7 +32,7 @@ public class Display extends JPanel implements ActionListener {
         super.paintComponent(g);
         if(viewer.getTree() != null) {
             Graphics2D g2 = (Graphics2D)g;
-            viewer.getTree().draw(g2);
+            viewer.getTree().draw(g2, WIDTH, HEIGHT);
             g2.dispose();
         }
     }

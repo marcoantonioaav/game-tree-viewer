@@ -15,16 +15,19 @@ public class Node {
     private Node father = null;
     private List<Node> children = new ArrayList<>();
 
-    private final int SIZE = 128;
-    private final int MARGIN = SIZE/4;
-    private final int PADDING = SIZE/16;
-    private final int STATE_SIZE = SIZE/3;
-    private final int LABEL_FONT_SIZE = SIZE/10;
-    private final int EVALUATION_FONT_SIZE = SIZE/8;
+    private final int NORMAL_SIZE = 128;
+    private final int PADDING = NORMAL_SIZE/16;
+    private final int STATE_SIZE = NORMAL_SIZE/3;
+    private final int LABEL_FONT_SIZE = NORMAL_SIZE/10;
+    private final int EVALUATION_FONT_SIZE = NORMAL_SIZE/8;
+    
+    private final int MIN_SMALL_SIZE = NORMAL_SIZE/4;
 
     public static final int EMPTY = 0;
     public static final int PLAYER_1 = 1;
     public static final int PLAYER_2 = 2;
+
+    private int size = NORMAL_SIZE;
 
     private String label = "";
     private int[][] state = null;
@@ -32,7 +35,11 @@ public class Node {
     private int playouts = 0;
     private float evaluation = 0;
 
+    private int maxWidthPx = 0;
+
     private boolean showEvaluation = false;
+    private boolean selected = false;
+    private boolean childrenActive = true;
 
     public Node() { }
 
@@ -64,52 +71,107 @@ public class Node {
     }
 
     public BufferedImage getImage() {
+        setSize(NORMAL_SIZE);
         BufferedImage image = Utils.newWhiteImage(nodesToPixels(getTreeWidth()), nodesToPixels(getTreeHeight()));
         Graphics2D g2 = image.createGraphics();
-        draw(g2);
+        drawDetailed(g2);
         g2.dispose();
         return image;
     }
 
-    public void draw(Graphics2D g2) {
+    public void draw(Graphics2D g2, int maxWidthPx, int maxHeightPx) {
+        this.maxWidthPx = maxWidthPx;
+        setSize(NORMAL_SIZE);
+        setTreeChildrenActive(true);
+        if(nodesToPixels(getTreeHeight()) <= maxHeightPx && nodesToPixels(getTreeWidth()) <= maxWidthPx)
+            drawDetailed(g2);
+        else {
+            setSize(MIN_SMALL_SIZE);
+            int maxDepth = getTreeHeight();
+            while((nodesToPixels(getTreeHeight()) > maxHeightPx || nodesToPixels(getTreeWidth()) > maxWidthPx) && maxDepth >= 1) {
+                maxDepth--;
+                pruneByDepth(maxDepth);
+            }
+            int smallSize = MIN_SMALL_SIZE;
+            while(nodesToPixels(getTreeHeight()) <= (maxHeightPx - getMargin()) && nodesToPixels(getTreeWidth()) <= (maxWidthPx - getMargin()) && smallSize < NORMAL_SIZE) {
+                smallSize++;
+                setSize(smallSize);
+            }
+            drawSimple(g2);
+        }
+    }
+
+    public void setTreeChildrenActive(boolean active) {
+        this.childrenActive = active;
+        for(Node child : children)
+            child.setTreeChildrenActive(active);
+    }
+
+    private void pruneByDepth(int maxDepth) {
+        if(maxDepth > 0)
+            childrenActive = true;
+        else
+            childrenActive = false;
+        for(Node child : children)
+            child.pruneByDepth(maxDepth-1);
+    }
+
+    private void drawSimple(Graphics2D g2) {
         drawCircle(g2);
         drawEdge(g2);
-        drawLabel(g2);
-        drawState(g2);
-        drawPlayouts(g2);
-        drawEvaluation(g2);
+        if(showEvaluation)   
+            drawTextOnCenter(g2, evaluation+"");
+        else if(playouts > 0)
+            drawTextOnCenter(g2, wins+"/"+playouts);
+        
         for(Node child : children)
-            child.draw(g2);
+            if(childrenActive)
+                child.drawSimple(g2);
+            else
+                drawDots(g2);
+    }
+
+    private void drawDots(Graphics2D g2) {
+        g2.drawLine(getX() + size/2, getY() + size, getX() + size/2, getY() + size + getMargin());
+        g2.fillOval(getX() + size/2, getY() + size + getMargin() + size/2 - 8, 4, 4);
+        g2.fillOval(getX() + size/2, getY() + size + getMargin() + size/2, 4, 4);
+        g2.fillOval(getX() + size/2, getY() + size + getMargin() + size/2 + 8, 4, 4);
+    }
+
+    private void drawDetailed(Graphics2D g2) {
+        drawCircle(g2);
+        drawEdge(g2);
+        if(label != "")
+            drawLabel(g2);
+        drawState(g2);
+        if(showEvaluation)   
+            drawScore(g2, evaluation+"");
+        else if(playouts > 0)
+            drawScore(g2, wins+"/"+playouts);
+        for(Node child : children)
+            child.drawDetailed(g2);
     }
 
     private void drawLabel(Graphics2D g2) {
-        if(label != "") {
-            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, LABEL_FONT_SIZE));
-            int textWidth = (int)g2.getFontMetrics().getStringBounds(label, g2).getWidth();
-            int textHeight = (int)g2.getFontMetrics().getStringBounds(label, g2).getHeight();
-            g2.drawString(label, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/3 - STATE_SIZE/2 - PADDING);
-        }      
+        g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, LABEL_FONT_SIZE));
+        int textWidth = (int)g2.getFontMetrics().getStringBounds(label, g2).getWidth();
+        int textHeight = (int)g2.getFontMetrics().getStringBounds(label, g2).getHeight();
+        g2.drawString(label, getX() + size/2 - textWidth/2, getY() + size/2 + textHeight/3 - STATE_SIZE/2 - PADDING);  
     }
 
-    private void drawPlayouts(Graphics2D g2) {
-        if(playouts > 0) {
-            String playoutsString = wins+"/"+playouts;
-            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, EVALUATION_FONT_SIZE));
-            int textWidth = (int)g2.getFontMetrics().getStringBounds(playoutsString, g2).getWidth();
-            int textHeight = (int)g2.getFontMetrics().getStringBounds(playoutsString, g2).getHeight();
-            g2.drawString(playoutsString, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/3 + STATE_SIZE/2 + PADDING);
-        }      
+    private void drawScore(Graphics2D g2, String score) {
+        g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, EVALUATION_FONT_SIZE));
+        int textWidth = (int)g2.getFontMetrics().getStringBounds(score, g2).getWidth();
+        int textHeight = (int)g2.getFontMetrics().getStringBounds(score, g2).getHeight();
+        g2.drawString(score, getX() + size/2 - textWidth/2, getY() + size/2 + textHeight/3 + STATE_SIZE/2 + PADDING);
     }
 
-    private void drawEvaluation(Graphics2D g2) {
-        if(showEvaluation) {
-            String evaluationString = evaluation+"";
-            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, EVALUATION_FONT_SIZE));
-            int textWidth = (int)g2.getFontMetrics().getStringBounds(evaluationString, g2).getWidth();
-            int textHeight = (int)g2.getFontMetrics().getStringBounds(evaluationString, g2).getHeight();
-            g2.drawString(evaluationString, getX() + SIZE/2 - textWidth/2, getY() + SIZE/2 + textHeight/3 + STATE_SIZE/2 + PADDING);
-        }      
-    }
+    private void drawTextOnCenter(Graphics2D g2, String text) {
+        g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, getSimpleFontSize()));
+        int textWidth = (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int textHeight = (int)g2.getFontMetrics().getStringBounds(text, g2).getHeight();
+        g2.drawString(text, getX() + size/2 - textWidth/2, getY() + size/2 + textHeight/3);
+    } 
 
     private void drawState(Graphics2D g2) {
         if(state != null)
@@ -119,8 +181,8 @@ public class Node {
     }
 
     private void drawStateCell(Graphics2D g2, int i, int j) {
-        int stateX = getX() + SIZE/2 - STATE_SIZE/2;
-        int stateY = getY() + SIZE/2 - STATE_SIZE/2;
+        int stateX = getX() + size/2 - STATE_SIZE/2;
+        int stateY = getY() + size/2 - STATE_SIZE/2;
         int cellSize = STATE_SIZE/state.length;
         g2.drawRect(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
         if(state[i][j] == PLAYER_1)
@@ -131,24 +193,52 @@ public class Node {
 
     private void drawEdge(Graphics2D g2) {
         if(father != null)
-            g2.drawLine(getX() + SIZE/2, getY(), father.getX() + SIZE/2, father.getY()+SIZE);
+            g2.drawLine(getX() + size/2, getY(), father.getX() + size/2, father.getY()+size);
     }
 
     private void drawCircle(Graphics2D g2) {
+        if(selected)
+            g2.setColor(Color.BLUE);
+        else
+            g2.setColor(Color.BLACK);
+        g2.fillOval(getX(), getY(), size, size);
+        setColorByScore(g2);
+        g2.fillOval(getX()+2, getY()+2, size-4, size-4);
+        g2.setColor(Color.WHITE);
+        g2.fillOval(getX()+4, getY()+4, size-8, size-8);
         g2.setColor(Color.BLACK);
-        g2.drawOval(getX(), getY(), SIZE, SIZE);
     }
+
+    private void setColorByScore(Graphics2D g2) {
+        float score, min;
+        if(showEvaluation) {
+            score = evaluation;
+            min = -1f;
+        }
+        else if(playouts > 0) {
+            score = (float)wins/(float)playouts;
+            min = 0f;
+        }
+        else return;
+
+        if(score == 1f)
+            g2.setColor(Color.GREEN);
+        else if(score == min)
+            g2.setColor(Color.RED);
+        else
+            g2.setColor(Color.ORANGE);
+    }  
 
     public int getX() {
         try {
-            return (getTreeMinX()*2 + nodesToPixels(getTreeWidth()))/2 - SIZE/2;
+            return (getTreeMinX()*2 + nodesToPixels(getTreeWidth()))/2 - size/2;
         } catch (Exception e) {
             return 0;
         }
     }
 
     public int getY() {
-        return nodesToPixels(getRootDistance()) + MARGIN/2;
+        return nodesToPixels(getRootDistance()) + getMargin()/2;
     }
 
     public int getRootDistance() {
@@ -159,7 +249,7 @@ public class Node {
 
     public int getTreeMinX() throws Exception {
         if(isRoot())
-            return 0;
+            return (maxWidthPx - nodesToPixels(getTreeWidth()))/2;
         int minX = father.getTreeMinX();
         for(Node brother : father.getChildren()) {
             if(brother.equals(this))
@@ -177,6 +267,8 @@ public class Node {
     }
  
     public int getTreeHeight() {
+        if(!childrenActive)
+            return 1;
         if(children.isEmpty())
             return 1;
         int treeHeight = 1;
@@ -186,6 +278,8 @@ public class Node {
     }
 
     public int getTreeWidth() {
+        if(!childrenActive)
+            return 1;
         if(children.isEmpty())
             return 1;
         int treeWidth = 0;
@@ -195,7 +289,7 @@ public class Node {
     }
 
     public int nodesToPixels(int count) {
-        return SIZE*count + MARGIN*count;
+        return size*count + getMargin()*count;
     }
 
     public Node getRoot() {
@@ -206,6 +300,14 @@ public class Node {
 
     public boolean isRoot() {
         return father == null;
+    }
+
+    public int getMargin() {
+        return size/4;
+    }
+
+    public int getSimpleFontSize() {
+        return size/3;
     }
 
     public void addChild(Node child) {
@@ -282,5 +384,23 @@ public class Node {
             this.label = "DRAW";
         else
             this.label = "";
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isChildrenActive() {
+        return childrenActive;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+        for(Node child : children)
+            child.setSize(size);
     }
 }

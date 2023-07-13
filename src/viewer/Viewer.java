@@ -14,7 +14,7 @@ public class Viewer extends Thread {
     }
 
     public Viewer(Node tree) {
-        this.tree = tree;
+        setTree(tree);
     }
 
     @Override
@@ -31,6 +31,7 @@ public class Viewer extends Thread {
     }
 
     public void setTree(Node tree) {
+        tree.setSelected(true);
         this.tree = tree;
     }
 
