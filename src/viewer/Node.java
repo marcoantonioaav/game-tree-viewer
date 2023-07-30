@@ -40,6 +40,10 @@ public class Node {
     private boolean showEvaluation = false;
     private boolean selected = false;
     private boolean childrenActive = true;
+    private boolean fakeRoot = false;
+    private Node realRoot = null;
+
+    private boolean drawn = true;
 
     public Node() { }
 
@@ -68,6 +72,33 @@ public class Node {
         setLabel(ludiiContext);
         this.evaluation = evaluation;
         showEvaluation = true;
+    }
+
+    public void unselectTree() {
+        this.selected = false;
+        for(Node child : children)
+            child.unselectTree();
+    }
+
+    public Node getSelectedNode(int x, int y) {
+        if(isOnLimits(x, y))
+            return this;
+        for(Node child : children) {
+            Node n = child.getSelectedNode(x, y);
+            if(n != null)
+                return n;
+        }
+        return null;
+    }
+
+    public boolean isOnLimits(int x, int y) {
+        return drawn && x >= getX() && x < getX() + size && y >= getY() && y < getY() + size;
+    }
+
+    public void resetDrawnTree() {
+        this.drawn = false;
+        for(Node child : children)
+            child.resetDrawnTree();
     }
 
     public BufferedImage getImage() {
@@ -117,28 +148,50 @@ public class Node {
     }
 
     private void drawSimple(Graphics2D g2) {
+        if(fakeRoot) {
+            drawDots(g2);
+            realRoot.drawSimple(g2);
+            return;
+        }
+
         drawCircle(g2);
         drawEdge(g2);
         if(showEvaluation)   
             drawTextOnCenter(g2, evaluation+"");
         else if(playouts > 0)
             drawTextOnCenter(g2, wins+"/"+playouts);
+
+        drawn = true;
         
         for(Node child : children)
             if(childrenActive)
                 child.drawSimple(g2);
             else
-                drawDots(g2);
+                drawDotsOnBottom(g2);
     }
 
-    private void drawDots(Graphics2D g2) {
-        g2.drawLine(getX() + size/2, getY() + size, getX() + size/2, getY() + size + getMargin());
-        g2.fillOval(getX() + size/2, getY() + size + getMargin() + size/2 - 8, 4, 4);
-        g2.fillOval(getX() + size/2, getY() + size + getMargin() + size/2, 4, 4);
-        g2.fillOval(getX() + size/2, getY() + size + getMargin() + size/2 + 8, 4, 4);
+    public void setFakeRoot(boolean fakeRoot) {
+        this.fakeRoot = fakeRoot;
+    }
+
+    public void setRealRoot(Node realRoot) {
+        this.realRoot = realRoot;
+    }
+
+    private void drawDotsOnBottom(Graphics2D g2) {
+        g2.drawLine(getX() + size/2 - 2, getY() + size, getX() + size/2, getY() + size + getMargin());
+        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 - 8, 4, 4);
+        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2, 4, 4);
+        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 + 8, 4, 4);
     }
 
     private void drawDetailed(Graphics2D g2) {
+        if(fakeRoot) {
+            drawDots(g2);
+            realRoot.drawDetailed(g2);
+            return;
+        }
+
         drawCircle(g2);
         drawEdge(g2);
         if(label != "")
@@ -148,8 +201,17 @@ public class Node {
             drawScore(g2, evaluation+"");
         else if(playouts > 0)
             drawScore(g2, wins+"/"+playouts);
+
+        drawn = true;
+        
         for(Node child : children)
             child.drawDetailed(g2);
+    }
+
+     private void drawDots(Graphics2D g2) {
+        g2.fillOval(getX() + size/2 - 2, getY() + size/2 - 8, 4, 4);
+        g2.fillOval(getX() + size/2 - 2, getY() + size/2, 4, 4);
+        g2.fillOval(getX() + size/2 - 2, getY() + size/2 + 8, 4, 4);
     }
 
     private void drawLabel(Graphics2D g2) {
@@ -197,11 +259,16 @@ public class Node {
     }
 
     private void drawCircle(Graphics2D g2) {
-        if(selected)
+        if(selected) {
             g2.setColor(Color.BLUE);
-        else
+            g2.fillOval(getX()-3, getY()-3, size+6, size+6);
+        }
+        else {
             g2.setColor(Color.BLACK);
-        g2.fillOval(getX(), getY(), size, size);
+            g2.fillOval(getX(), getY(), size, size);
+        }
+            
+        
         setColorByScore(g2);
         g2.fillOval(getX()+2, getY()+2, size-4, size-4);
         g2.setColor(Color.WHITE);
@@ -242,14 +309,16 @@ public class Node {
     }
 
     public int getRootDistance() {
-        if(isRoot())
+        if(isRoot() || fakeRoot)
             return 0;
         return 1 + father.getRootDistance();
     }
 
     public int getTreeMinX() throws Exception {
-        if(isRoot())
+        if(isRoot() || fakeRoot)
             return (maxWidthPx - nodesToPixels(getTreeWidth()))/2;
+        if(father.isFakeRoot())
+            return father.getTreeMinX();
         int minX = father.getTreeMinX();
         for(Node brother : father.getChildren()) {
             if(brother.equals(this))
@@ -271,6 +340,8 @@ public class Node {
             return 1;
         if(children.isEmpty())
             return 1;
+        if(fakeRoot)
+            return 1+realRoot.getTreeHeight();
         int treeHeight = 1;
         for(Node child : children)
             treeHeight = (int) Math.max(treeHeight, 1+child.getTreeHeight());
@@ -282,6 +353,8 @@ public class Node {
             return 1;
         if(children.isEmpty())
             return 1;
+        if(fakeRoot)
+            return realRoot.getTreeWidth();
         int treeWidth = 0;
         for(Node child : children)
             treeWidth += child.getTreeWidth();
@@ -326,8 +399,9 @@ public class Node {
 
     public void setFather(Node father) {
         this.father = father;
-        if(!this.father.getChildren().contains(this))
-            this.father.addChild(this);
+        if(father != null)
+            if(!this.father.getChildren().contains(this))
+                this.father.addChild(this);
     }
 
     public void setState(int[][] state) {
@@ -402,5 +476,9 @@ public class Node {
         this.size = size;
         for(Node child : children)
             child.setSize(size);
+    }
+
+    public boolean isFakeRoot() {
+        return fakeRoot;
     }
 }

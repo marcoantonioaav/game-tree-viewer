@@ -4,6 +4,7 @@ public class Viewer extends Thread {
     private String title = "Game tree viewer";
     private Display display = new Display(this);
     private Node tree = null;
+    private Node selected = null;
 
     public Viewer() {
 
@@ -31,8 +32,9 @@ public class Viewer extends Thread {
     }
 
     public void setTree(Node tree) {
-        tree.setSelected(true);
         this.tree = tree;
+        setSelected(tree);
+        display.setRoot(tree);
     }
 
     public String getTitle() {
@@ -41,5 +43,11 @@ public class Viewer extends Thread {
 
     public Display getDisplay() {
         return display;
+    }
+
+    public void setSelected(Node selected) {
+        tree.unselectTree();
+        selected.setSelected(true);
+        this.selected = selected;
     }
 }
