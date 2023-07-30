@@ -15,19 +15,19 @@ public class Node {
     private Node father = null;
     private List<Node> children = new ArrayList<>();
 
-    private final int NORMAL_SIZE = 128;
-    private final int PADDING = NORMAL_SIZE/16;
-    private final int STATE_SIZE = NORMAL_SIZE/3;
-    private final int LABEL_FONT_SIZE = NORMAL_SIZE/10;
-    private final int EVALUATION_FONT_SIZE = NORMAL_SIZE/8;
+    private final int MAX_SIZE = 128;
+    private final int MIN_SIZE = MAX_SIZE/4;
+    /*private final int PADDING = MAX_SIZE/16;
+    private final int STATE_SIZE = MAX_SIZE/3;
+    private final int LABEL_FONT_SIZE = MAX_SIZE/10;
+    private final int EVALUATION_FONT_SIZE = MAX_SIZE/8;
+    */
     
-    private final int MIN_SMALL_SIZE = NORMAL_SIZE/4;
-
     public static final int EMPTY = 0;
     public static final int PLAYER_1 = 1;
     public static final int PLAYER_2 = 2;
 
-    private int size = NORMAL_SIZE;
+    private int size = MAX_SIZE;
 
     private String label = "";
     private int[][] state = null;
@@ -42,8 +42,7 @@ public class Node {
     private boolean childrenActive = true;
     private boolean fakeRoot = false;
     private Node realRoot = null;
-
-    private boolean drawn = true;
+    private boolean drawn = false;
 
     public Node() { }
 
@@ -74,83 +73,40 @@ public class Node {
         showEvaluation = true;
     }
 
-    public void unselectTree() {
-        this.selected = false;
-        for(Node child : children)
-            child.unselectTree();
-    }
-
-    public Node getSelectedNode(int x, int y) {
-        if(isOnLimits(x, y))
-            return this;
-        for(Node child : children) {
-            Node n = child.getSelectedNode(x, y);
-            if(n != null)
-                return n;
-        }
-        return null;
-    }
-
-    public boolean isOnLimits(int x, int y) {
-        return drawn && x >= getX() && x < getX() + size && y >= getY() && y < getY() + size;
-    }
-
-    public void resetDrawnTree() {
-        this.drawn = false;
-        for(Node child : children)
-            child.resetDrawnTree();
-    }
-
     public BufferedImage getImage() {
-        setSize(NORMAL_SIZE);
+        setSize(MAX_SIZE);
         BufferedImage image = Utils.newWhiteImage(nodesToPixels(getTreeWidth()), nodesToPixels(getTreeHeight()));
         Graphics2D g2 = image.createGraphics();
-        drawDetailed(g2);
+        setSize(MIN_SIZE);
+        setTreeChildrenActive(true);
+        drawTreeNavigation(g2);
         g2.dispose();
         return image;
     }
 
-    public void draw(Graphics2D g2, int maxWidthPx, int maxHeightPx) {
+    public void drawTreeNavigation(Graphics2D g2, int maxWidthPx, int maxHeightPx) {
         this.maxWidthPx = maxWidthPx;
-        setSize(NORMAL_SIZE);
+        setTreeDrawn(false);
         setTreeChildrenActive(true);
-        if(nodesToPixels(getTreeHeight()) <= maxHeightPx && nodesToPixels(getTreeWidth()) <= maxWidthPx)
-            drawDetailed(g2);
-        else {
-            setSize(MIN_SMALL_SIZE);
-            int maxDepth = getTreeHeight();
-            while((nodesToPixels(getTreeHeight()) > maxHeightPx || nodesToPixels(getTreeWidth()) > maxWidthPx) && maxDepth >= 1) {
-                maxDepth--;
-                pruneByDepth(maxDepth);
-            }
-            int smallSize = MIN_SMALL_SIZE;
-            while(nodesToPixels(getTreeHeight()) <= (maxHeightPx - getMargin()) && nodesToPixels(getTreeWidth()) <= (maxWidthPx - getMargin()) && smallSize < NORMAL_SIZE) {
-                smallSize++;
-                setSize(smallSize);
-            }
-            drawSimple(g2);
+        setSize(MIN_SIZE);
+        int maxDepth = getTreeHeight();
+        while((nodesToPixels(getTreeHeight()) > maxHeightPx || nodesToPixels(getTreeWidth()) > maxWidthPx) && maxDepth >= 1) {
+            maxDepth--;
+            pruneByDepth(maxDepth);
         }
+        int smallSize = MIN_SIZE;
+        while(nodesToPixels(getTreeHeight()) <= (maxHeightPx - getMargin()) && nodesToPixels(getTreeWidth()) <= (maxWidthPx - getMargin()) && smallSize <= MAX_SIZE) {
+            smallSize++;
+            setSize(smallSize);
+        }
+        drawTreeNavigation(g2);
     }
 
-    public void setTreeChildrenActive(boolean active) {
-        this.childrenActive = active;
-        for(Node child : children)
-            child.setTreeChildrenActive(active);
-    }
-
-    private void pruneByDepth(int maxDepth) {
-        if(maxDepth > 0)
-            childrenActive = true;
-        else
-            childrenActive = false;
-        for(Node child : children)
-            child.pruneByDepth(maxDepth-1);
-    }
-
-    private void drawSimple(Graphics2D g2) {
+    private void drawTreeNavigation(Graphics2D g2) {
+        drawn = true;
         if(fakeRoot) {
             drawDots(g2);
-            realRoot.drawSimple(g2);
+            realRoot.drawTreeNavigation(g2);
             return;
         }
 
@@ -160,32 +116,22 @@ public class Node {
             drawTextOnCenter(g2, evaluation+"");
         else if(playouts > 0)
             drawTextOnCenter(g2, wins+"/"+playouts);
-
-        drawn = true;
         
         for(Node child : children)
             if(childrenActive)
-                child.drawSimple(g2);
+                child.drawTreeNavigation(g2);
             else
                 drawDotsOnBottom(g2);
     }
 
-    public void setFakeRoot(boolean fakeRoot) {
-        this.fakeRoot = fakeRoot;
-    }
-
-    public void setRealRoot(Node realRoot) {
-        this.realRoot = realRoot;
-    }
-
     private void drawDotsOnBottom(Graphics2D g2) {
         g2.drawLine(getX() + size/2 - 2, getY() + size, getX() + size/2, getY() + size + getMargin());
-        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 - 8, 4, 4);
-        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2, 4, 4);
-        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 + 8, 4, 4);
+        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 - size/8, size/16, size/16);
+        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2, size/16, size/16);
+        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 + size/8, size/16, size/16);
     }
 
-    private void drawDetailed(Graphics2D g2) {
+    /*private void drawDetailed(Graphics2D g2) {
         if(fakeRoot) {
             drawDots(g2);
             realRoot.drawDetailed(g2);
@@ -201,20 +147,21 @@ public class Node {
             drawScore(g2, evaluation+"");
         else if(playouts > 0)
             drawScore(g2, wins+"/"+playouts);
-
-        drawn = true;
         
         for(Node child : children)
             child.drawDetailed(g2);
-    }
+    }*/
 
      private void drawDots(Graphics2D g2) {
-        g2.fillOval(getX() + size/2 - 2, getY() + size/2 - 8, 4, 4);
-        g2.fillOval(getX() + size/2 - 2, getY() + size/2, 4, 4);
-        g2.fillOval(getX() + size/2 - 2, getY() + size/2 + 8, 4, 4);
+        if(selected)
+            g2.setColor(Color.BLUE);
+        g2.fillOval(getX() + size/2 - 2, getY() + size/2 - size/8, size/16, size/16);
+        g2.fillOval(getX() + size/2 - 2, getY() + size/2, size/16, size/16);
+        g2.fillOval(getX() + size/2 - 2, getY() + size/2 + size/8, size/16, size/16);
+        g2.setColor(Color.BLACK);
     }
 
-    private void drawLabel(Graphics2D g2) {
+    /*private void drawLabel(Graphics2D g2) {
         g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, LABEL_FONT_SIZE));
         int textWidth = (int)g2.getFontMetrics().getStringBounds(label, g2).getWidth();
         int textHeight = (int)g2.getFontMetrics().getStringBounds(label, g2).getHeight();
@@ -226,16 +173,16 @@ public class Node {
         int textWidth = (int)g2.getFontMetrics().getStringBounds(score, g2).getWidth();
         int textHeight = (int)g2.getFontMetrics().getStringBounds(score, g2).getHeight();
         g2.drawString(score, getX() + size/2 - textWidth/2, getY() + size/2 + textHeight/3 + STATE_SIZE/2 + PADDING);
-    }
+    }*/
 
     private void drawTextOnCenter(Graphics2D g2, String text) {
-        g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, getSimpleFontSize()));
+        g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, getFontSize()));
         int textWidth = (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth();
         int textHeight = (int)g2.getFontMetrics().getStringBounds(text, g2).getHeight();
         g2.drawString(text, getX() + size/2 - textWidth/2, getY() + size/2 + textHeight/3);
     } 
 
-    private void drawState(Graphics2D g2) {
+    /*private void drawState(Graphics2D g2) {
         if(state != null)
             for(int i = 0; i<state.length; i++)
                 for(int j = 0; j<state[0].length; j++)
@@ -251,7 +198,7 @@ public class Node {
             g2.drawOval(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
         else if(state[i][j] == PLAYER_2)
             g2.fillOval(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
-    }
+    }*/
 
     private void drawEdge(Graphics2D g2) {
         if(father != null)
@@ -259,20 +206,17 @@ public class Node {
     }
 
     private void drawCircle(Graphics2D g2) {
-        if(selected) {
+        if(selected)
             g2.setColor(Color.BLUE);
-            g2.fillOval(getX()-3, getY()-3, size+6, size+6);
-        }
-        else {
+        else
             g2.setColor(Color.BLACK);
-            g2.fillOval(getX(), getY(), size, size);
-        }
-            
+        g2.fillOval(getX(), getY(), size, size);
         
         setColorByScore(g2);
-        g2.fillOval(getX()+2, getY()+2, size-4, size-4);
-        g2.setColor(Color.WHITE);
-        g2.fillOval(getX()+4, getY()+4, size-8, size-8);
+        if(selected)
+            g2.fillOval(getX()+4, getY()+4, size-8, size-8);
+        else
+            g2.fillOval(getX()+2, getY()+2, size-4, size-4);
         g2.setColor(Color.BLACK);
     }
 
@@ -295,6 +239,27 @@ public class Node {
         else
             g2.setColor(Color.ORANGE);
     }  
+
+    private void setTreeDrawn(boolean drawn) {
+        this.drawn = drawn;
+        for(Node child : children)
+            child.setTreeDrawn(drawn);
+    }
+
+    public void setTreeChildrenActive(boolean active) {
+        this.childrenActive = active;
+        for(Node child : children)
+            child.setTreeChildrenActive(active);
+    }
+
+    private void pruneByDepth(int maxDepth) {
+        if(maxDepth > 0)
+            childrenActive = true;
+        else
+            childrenActive = false;
+        for(Node child : children)
+            child.pruneByDepth(maxDepth-1);
+    }
 
     public int getX() {
         try {
@@ -379,8 +344,8 @@ public class Node {
         return size/4;
     }
 
-    public int getSimpleFontSize() {
-        return size/3;
+    public int getFontSize() {
+        return size/4;
     }
 
     public void addChild(Node child) {
@@ -480,5 +445,34 @@ public class Node {
 
     public boolean isFakeRoot() {
         return fakeRoot;
+    }
+
+    public void unselectTree() {
+        this.selected = false;
+        for(Node child : children)
+            child.unselectTree();
+    }
+
+    public Node getNodeByPosition(int x, int y) {
+        if(isOnLimits(x, y))
+            return this;
+        for(Node child : children) {
+            Node n = child.getNodeByPosition(x, y);
+            if(n != null)
+                return n;
+        }
+        return null;
+    }
+
+    public boolean isOnLimits(int x, int y) {
+        return drawn && x >= getX() && x < getX() + size && y >= getY() && y < getY() + size;
+    }
+
+    public void setFakeRoot(boolean fakeRoot) {
+        this.fakeRoot = fakeRoot;
+    }
+
+    public void setRealRoot(Node realRoot) {
+        this.realRoot = realRoot;
     }
 }

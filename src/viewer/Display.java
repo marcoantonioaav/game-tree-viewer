@@ -36,14 +36,14 @@ public class Display extends JPanel implements MouseListener {
         super.paintComponent(g);
         if(root != null) {
             Graphics2D g2 = (Graphics2D)g;
-            root.draw(g2, WIDTH, HEIGHT);
+            root.drawTreeNavigation(g2, WIDTH, HEIGHT);
             g2.dispose();
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        Node selected = root.getSelectedNode(e.getX(), e.getY());
+        Node selected = root.getNodeByPosition(e.getX(), e.getY());
         if(selected != null) {
             viewer.setSelected(selected);
             if(e.getClickCount() == 2) {
