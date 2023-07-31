@@ -131,7 +131,7 @@ public class Node {
         drawCircle(g2);
         drawEdge(g2);
         if(showEvaluation)   
-            drawTextOnCenter(g2, evaluation+"");
+            drawTextOnCenter(g2, String.format("%.1f", evaluation));
         else if(playouts > 0)
             drawTextOnCenter(g2, wins+"/"+playouts);
         
@@ -272,6 +272,38 @@ public class Node {
 
     public int getY() {
         return nodesToPixels(getRootDistance()) + getMargin()/2;
+    }
+
+    public float getBranchingFactor() {
+        return (float)getTreeChildrenCountSum()/(float)Math.max(getTreeNonTerminalCount(), 1);
+    }
+
+    private int getTreeChildrenCountSum() {
+        if(children.isEmpty())
+            return 0;
+        int childrenCountSum = children.size();
+        for(Node child : children)
+            if(!child.getChildren().isEmpty())
+                childrenCountSum += child.getTreeChildrenCountSum();
+        return childrenCountSum;
+    }
+
+    private int getTreeNonTerminalCount() {
+        if(children.isEmpty())
+            return 0;
+        int count = 1;
+        for(Node child : children)
+            count += child.getTreeNonTerminalCount();
+        return count;
+    }
+
+    public int getTreeNodeCount() {
+        if(children.isEmpty())
+            return 1;
+        int count = 1;
+        for(Node child : children)
+            count += child.getTreeNodeCount();
+        return count;
     }
 
     public int getRootDistance() {
@@ -418,12 +450,12 @@ public class Node {
     public void setLabel(Context ludiiContext) {
         if(!ludiiContext.winners().isEmpty()) {
             int winner = ludiiContext.winners().get(0);
-            this.label = "PLAYER " + winner + " WINS";
+            this.label = "Player " + winner + " victory state";
         }
         else if(ludiiContext.trial().over())
-            this.label = "DRAW";
+            this.label = "Draw state";
         else
-            this.label = "";
+            this.label = "Non-terminal state";
     }
 
     public boolean isSelected() {
@@ -475,5 +507,21 @@ public class Node {
 
     public void setRealRoot(Node realRoot) {
         this.realRoot = realRoot;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public float getEvaluation() {
+        return evaluation;
+    }
+
+    public int getPlayouts() {
+        return playouts;
+    }
+
+    public int getWins() {
+        return wins;
     }
 }

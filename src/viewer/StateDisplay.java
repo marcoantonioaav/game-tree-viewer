@@ -7,12 +7,12 @@ import java.awt.Graphics2D;
 
 import javax.swing.JPanel;
 
-public class StateViewer extends JPanel {
+public class StateDisplay extends JPanel {
     public final int SIZE = 256;
 
     private Viewer viewer;
 
-    public StateViewer(Viewer viewer) {
+    public StateDisplay(Viewer viewer) {
         this.viewer = viewer;
         this.setPreferredSize(new Dimension(SIZE, SIZE));
         this.setBackground(Color.WHITE);

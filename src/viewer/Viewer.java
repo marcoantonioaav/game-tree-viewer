@@ -2,8 +2,9 @@ package viewer;
 
 public class Viewer extends Thread {
     private String title = "Game tree viewer";
-    private Display display = new Display(this);
-    private StateViewer stateViewer = new StateViewer(this);
+    private TreeDisplay treeDisplay = new TreeDisplay(this);
+    private StateDisplay stateDisplay = new StateDisplay(this);
+    private InfoPanel infoPanel = new InfoPanel(this);
 
     private Node tree = null;
     private Node selected = null;
@@ -36,26 +37,31 @@ public class Viewer extends Thread {
     public void setTree(Node tree) {
         this.tree = tree;
         setSelected(tree);
-        display.setRoot(tree);
+        treeDisplay.setRoot(tree);
     }
 
     public String getTitle() {
         return title;
     }
 
-    public Display getDisplay() {
-        return display;
+    public TreeDisplay getTreeDisplay() {
+        return treeDisplay;
     }
 
-    public StateViewer getStateViewer() {
-        return stateViewer;
+    public StateDisplay getStateDisplay() {
+        return stateDisplay;
+    }
+
+    public InfoPanel getInfoPanel() {
+        return infoPanel;
     }
 
     public void setSelected(Node selected) {
         tree.unselectTree();
         selected.setSelected(true);
         this.selected = selected;
-        stateViewer.repaint();
+        stateDisplay.repaint();
+        infoPanel.update();
     }
 
     public Node getSelected() {

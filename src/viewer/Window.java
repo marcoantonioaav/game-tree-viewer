@@ -1,6 +1,7 @@
 package viewer;
 
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -8,9 +9,12 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 
 public class Window extends JFrame implements ActionListener {
     private Viewer viewer;
+
+    private JPanel sidePanel = new JPanel(new GridLayout(0, 1, 0, 0));
 
     public Window(Viewer viewer) {
         this.viewer = viewer;
@@ -18,10 +22,12 @@ public class Window extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         setTitle(viewer.getTitle());
-        setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         addMenuBar();
-        add(viewer.getDisplay());
-        add(viewer.getStateViewer());
+        add(viewer.getTreeDisplay());
+        sidePanel.add(viewer.getStateDisplay());
+        sidePanel.add(viewer.getInfoPanel());
+        add(sidePanel);
         pack();
         
         setLocationRelativeTo(null);

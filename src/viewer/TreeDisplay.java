@@ -9,14 +9,14 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 
-public class Display extends JPanel implements MouseListener {
+public class TreeDisplay extends JPanel implements MouseListener {
     public final int WIDTH = 720;
     public final int HEIGHT = 720;
 
     private Viewer viewer;
     private Node root;
 
-    public Display(Viewer viewer) {
+    public TreeDisplay(Viewer viewer) {
         this.viewer = viewer;
         this.root = viewer.getTree();
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
