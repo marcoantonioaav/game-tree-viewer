@@ -1,5 +1,9 @@
 package viewer;
 
+import viewer.panels.InfoPanel;
+import viewer.panels.StateDisplay;
+import viewer.panels.TreeDisplay;
+
 public class Viewer extends Thread {
     private String title = "Game tree viewer";
     private TreeDisplay treeDisplay = new TreeDisplay(this);
@@ -26,8 +30,9 @@ public class Viewer extends Thread {
         new Window(this);
     }
 
+    @Deprecated
     public void export() {
-        Utils.saveImage(tree.getImage(), "C:\\Users\\MarcoAntonio\\Documents\\GitHub\\game-tree-viewer\\", "test", "png");
+        //Utils.saveImage(tree.getImage(), "C:\\Users\\MarcoAntonio\\Documents\\GitHub\\game-tree-viewer\\", "test", "png");
     }
 
     public Node getTree() {
@@ -57,8 +62,8 @@ public class Viewer extends Thread {
     }
 
     public void setSelected(Node selected) {
-        tree.unselectTree();
-        selected.setSelected(true);
+        tree.getTreeDisplayNode().unselectTree();
+        selected.getTreeDisplayNode().setSelected(true);
         this.selected = selected;
         stateDisplay.repaint();
         infoPanel.update();

@@ -1,4 +1,4 @@
-package viewer;
+package viewer.panels;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,6 +8,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
+
+import viewer.Node;
+import viewer.Viewer;
 
 public class TreeDisplay extends JPanel implements MouseListener {
     public final int WIDTH = 720;
@@ -36,22 +39,22 @@ public class TreeDisplay extends JPanel implements MouseListener {
         super.paintComponent(g);
         if(root != null) {
             Graphics2D g2 = (Graphics2D)g;
-            root.drawTreeNavigation(g2, WIDTH, HEIGHT);
+            root.getTreeDisplayNode().drawTreeNavigation(g2, WIDTH, HEIGHT);
             g2.dispose();
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        Node selected = root.getNodeByPosition(e.getX(), e.getY());
+        Node selected = root.getTreeDisplayNode().getNodeByPosition(e.getX(), e.getY());
         if(selected != null) {
             viewer.setSelected(selected);
             if(e.getClickCount() == 2) {
-                root.setFakeRoot(false);
-                root.setRealRoot(null);
+                root.getTreeDisplayNode().setFakeRoot(false);
+                root.getTreeDisplayNode().setRealRoot(null);
                 if(selected.getFather() != null) {
-                    selected.getFather().setFakeRoot(true);
-                    selected.getFather().setRealRoot(selected);
+                    selected.getFather().getTreeDisplayNode().setFakeRoot(true);
+                    selected.getFather().getTreeDisplayNode().setRealRoot(selected);
                     root = selected.getFather();
                 }
                 else 

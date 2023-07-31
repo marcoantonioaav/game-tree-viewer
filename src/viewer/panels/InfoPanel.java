@@ -1,4 +1,4 @@
-package viewer;
+package viewer.panels;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,6 +7,8 @@ import java.awt.Font;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import viewer.Viewer;
 
 public class InfoPanel extends JPanel {
     public final int WIDTH = 256;
@@ -58,10 +60,10 @@ public class InfoPanel extends JPanel {
             evaluation.setText("Evaluation: "+String.format("%.3f", viewer.getSelected().getEvaluation()));
             playouts.setText("Playouts (W/P): "+viewer.getSelected().getWins()+"/"+viewer.getSelected().getPlayouts());
             branching.setText("Branching factor: "+viewer.getSelected().getChildren().size());
-            nodeCount.setText("Node count: "+viewer.getSelected().getTreeNodeCount());
+            nodeCount.setText("Expanded nodes: "+viewer.getSelected().getTreeNodeCount());
             branchingMean.setText("Branching factor (mean): "+String.format("%.2f", viewer.getSelected().getBranchingFactor()));
-            height.setText("Height: "+viewer.getSelected().getTreeHeight());
-            width.setText("Width: "+viewer.getSelected().getTreeWidth());
+            height.setText("Height: "+viewer.getSelected().getHeight());
+            width.setText("Width: "+viewer.getSelected().getWidth());
 
             node.setText("NODE INFO");
             tree.setText("TREE ANALYSIS");
