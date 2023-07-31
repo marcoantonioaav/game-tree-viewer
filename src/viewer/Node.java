@@ -17,8 +17,8 @@ public class Node {
 
     private final int MAX_SIZE = 128;
     private final int MIN_SIZE = MAX_SIZE/4;
-    /*private final int PADDING = MAX_SIZE/16;
-    private final int STATE_SIZE = MAX_SIZE/3;
+    /*
+    private final int PADDING = MAX_SIZE/16;
     private final int LABEL_FONT_SIZE = MAX_SIZE/10;
     private final int EVALUATION_FONT_SIZE = MAX_SIZE/8;
     */
@@ -74,14 +74,32 @@ public class Node {
     }
 
     public BufferedImage getImage() {
-        setSize(MAX_SIZE);
-        BufferedImage image = Utils.newWhiteImage(nodesToPixels(getTreeWidth()), nodesToPixels(getTreeHeight()));
-        Graphics2D g2 = image.createGraphics();
         setSize(MIN_SIZE);
         setTreeChildrenActive(true);
+        BufferedImage image = Utils.newWhiteImage(nodesToPixels(getTreeWidth()), nodesToPixels(getTreeHeight()));
+        Graphics2D g2 = image.createGraphics();
         drawTreeNavigation(g2);
         g2.dispose();
         return image;
+    }
+
+    public void drawState(Graphics2D g2, int displaySize) {
+        if(state != null)
+            for(int i = 0; i<state.length; i++)
+                for(int j = 0; j<state[0].length; j++)
+                    drawStateCell(g2, i, j, displaySize);
+    }
+
+    private void drawStateCell(Graphics2D g2, int i, int j, int displaySize) {
+        int stateSize = (6*displaySize)/8;
+        int stateX = (displaySize - stateSize)/2;
+        int stateY = (displaySize - stateSize)/2;
+        int cellSize = stateSize/state.length;
+        g2.drawRect(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
+        if(state[i][j] == PLAYER_1)
+            g2.drawOval(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
+        else if(state[i][j] == PLAYER_2)
+            g2.fillOval(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
     }
 
     public void drawTreeNavigation(Graphics2D g2, int maxWidthPx, int maxHeightPx) {
@@ -125,10 +143,10 @@ public class Node {
     }
 
     private void drawDotsOnBottom(Graphics2D g2) {
-        g2.drawLine(getX() + size/2 - 2, getY() + size, getX() + size/2, getY() + size + getMargin());
-        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 - size/8, size/16, size/16);
-        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2, size/16, size/16);
-        g2.fillOval(getX() + size/2 - 2, getY() + size + getMargin() + size/2 + size/8, size/16, size/16);
+        g2.drawLine(getX() + size/2, getY() + size, getX() + size/2, getY() + size + getMargin());
+        g2.fillOval(getX() + size/2 - size/32, getY() + size + getMargin() + size/2 - size/8, size/16, size/16);
+        g2.fillOval(getX() + size/2 - size/32, getY() + size + getMargin() + size/2, size/16, size/16);
+        g2.fillOval(getX() + size/2 - size/32, getY() + size + getMargin() + size/2 + size/8, size/16, size/16);
     }
 
     /*private void drawDetailed(Graphics2D g2) {
@@ -155,9 +173,9 @@ public class Node {
      private void drawDots(Graphics2D g2) {
         if(selected)
             g2.setColor(Color.BLUE);
-        g2.fillOval(getX() + size/2 - 2, getY() + size/2 - size/8, size/16, size/16);
-        g2.fillOval(getX() + size/2 - 2, getY() + size/2, size/16, size/16);
-        g2.fillOval(getX() + size/2 - 2, getY() + size/2 + size/8, size/16, size/16);
+        g2.fillOval(getX() + size/2 - size/32, getY() + size/2 - size/8, size/16, size/16);
+        g2.fillOval(getX() + size/2 - size/32, getY() + size/2, size/16, size/16);
+        g2.fillOval(getX() + size/2 - size/32, getY() + size/2 + size/8, size/16, size/16);
         g2.setColor(Color.BLACK);
     }
 
@@ -182,24 +200,6 @@ public class Node {
         g2.drawString(text, getX() + size/2 - textWidth/2, getY() + size/2 + textHeight/3);
     } 
 
-    /*private void drawState(Graphics2D g2) {
-        if(state != null)
-            for(int i = 0; i<state.length; i++)
-                for(int j = 0; j<state[0].length; j++)
-                    drawStateCell(g2, i, j);
-    }
-
-    private void drawStateCell(Graphics2D g2, int i, int j) {
-        int stateX = getX() + size/2 - STATE_SIZE/2;
-        int stateY = getY() + size/2 - STATE_SIZE/2;
-        int cellSize = STATE_SIZE/state.length;
-        g2.drawRect(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
-        if(state[i][j] == PLAYER_1)
-            g2.drawOval(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
-        else if(state[i][j] == PLAYER_2)
-            g2.fillOval(stateX+(cellSize*i), stateY+(cellSize*j), cellSize, cellSize);
-    }*/
-
     private void drawEdge(Graphics2D g2) {
         if(father != null)
             g2.drawLine(getX() + size/2, getY(), father.getX() + size/2, father.getY()+size);
@@ -213,10 +213,11 @@ public class Node {
         g2.fillOval(getX(), getY(), size, size);
         
         setColorByScore(g2);
+        int circleThickness = Math.min(size/16, 5);
         if(selected)
-            g2.fillOval(getX()+4, getY()+4, size-8, size-8);
+            g2.fillOval(getX()+circleThickness*2, getY()+circleThickness*2, size-(circleThickness*4), size-(circleThickness*4));
         else
-            g2.fillOval(getX()+2, getY()+2, size-4, size-4);
+            g2.fillOval(getX()+circleThickness, getY()+circleThickness, size-(circleThickness*2), size-(circleThickness*2));
         g2.setColor(Color.BLACK);
     }
 

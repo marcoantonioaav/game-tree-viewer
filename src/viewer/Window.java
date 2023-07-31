@@ -1,5 +1,6 @@
 package viewer;
 
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -15,10 +16,12 @@ public class Window extends JFrame implements ActionListener {
         this.viewer = viewer;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(true);
+        setResizable(false);
         setTitle(viewer.getTitle());
-        add(viewer.getDisplay());
+        setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
         addMenuBar();
+        add(viewer.getDisplay());
+        add(viewer.getStateViewer());
         pack();
         
         setLocationRelativeTo(null);

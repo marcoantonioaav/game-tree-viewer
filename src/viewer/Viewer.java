@@ -3,6 +3,8 @@ package viewer;
 public class Viewer extends Thread {
     private String title = "Game tree viewer";
     private Display display = new Display(this);
+    private StateViewer stateViewer = new StateViewer(this);
+
     private Node tree = null;
     private Node selected = null;
 
@@ -45,9 +47,18 @@ public class Viewer extends Thread {
         return display;
     }
 
+    public StateViewer getStateViewer() {
+        return stateViewer;
+    }
+
     public void setSelected(Node selected) {
         tree.unselectTree();
         selected.setSelected(true);
         this.selected = selected;
+        stateViewer.repaint();
+    }
+
+    public Node getSelected() {
+        return selected;
     }
 }
