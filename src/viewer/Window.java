@@ -1,5 +1,6 @@
 package viewer;
 
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -10,6 +11,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
+import viewer.panels.TreeMinimap;
 
 public class Window extends JFrame implements ActionListener {
     private Viewer viewer;
@@ -27,6 +31,10 @@ public class Window extends JFrame implements ActionListener {
         add(viewer.getTreeDisplay());
         sidePanel.add(viewer.getStateDisplay());
         sidePanel.add(viewer.getInfoPanel());
+
+        JScrollPane scroller = new JScrollPane(viewer.getTreeMinimap(), JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scroller.setPreferredSize(new Dimension(TreeMinimap.WIDTH, TreeMinimap.HEIGHT));
+        sidePanel.add(scroller);
         add(sidePanel);
         pack();
         

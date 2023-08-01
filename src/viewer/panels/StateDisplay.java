@@ -11,7 +11,7 @@ import viewer.Node;
 import viewer.Viewer;
 
 public class StateDisplay extends JPanel {
-    public final int SIZE = 256;
+    public final int SIZE = 240;
 
     private Viewer viewer;
 

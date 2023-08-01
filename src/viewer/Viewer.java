@@ -3,12 +3,14 @@ package viewer;
 import viewer.panels.InfoPanel;
 import viewer.panels.StateDisplay;
 import viewer.panels.TreeDisplay;
+import viewer.panels.TreeMinimap;
 
 public class Viewer extends Thread {
     private String title = "Game tree viewer";
     private TreeDisplay treeDisplay = new TreeDisplay(this);
     private StateDisplay stateDisplay = new StateDisplay(this);
     private InfoPanel infoPanel = new InfoPanel(this);
+    private TreeMinimap treeMinimap = new TreeMinimap(this);
 
     private Node tree = null;
     private Node selected = null;
@@ -61,12 +63,18 @@ public class Viewer extends Thread {
         return infoPanel;
     }
 
+    public TreeMinimap getTreeMinimap() {
+        return treeMinimap;
+    }
+
     public void setSelected(Node selected) {
         tree.getTreeDisplayNode().unselectTree();
         selected.getTreeDisplayNode().setSelected(true);
         this.selected = selected;
+        treeDisplay.repaint();
         stateDisplay.repaint();
         infoPanel.update();
+        treeMinimap.update();
     }
 
     public Node getSelected() {

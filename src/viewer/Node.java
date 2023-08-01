@@ -1,5 +1,6 @@
 package viewer;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +21,9 @@ public class Node {
     private int[][] state = null;
     private int wins = 0;
     private int playouts = 0;
-    private float evaluation = 0;
-    private boolean usingEvaluation = false;
+    private float evaluation = Float.NaN;
 
     private TreeDisplayNode treeDisplayNode = new TreeDisplayNode(this);
-
-    public boolean isUsingEvaluation() {
-        return usingEvaluation;
-    }
 
     public Node() { }
 
@@ -55,11 +51,6 @@ public class Node {
         setState(ludiiContext);
         setLabel(ludiiContext);
         this.evaluation = evaluation;
-        usingEvaluation = true;
-    }
-
-    public TreeDisplayNode getTreeDisplayNode() {
-        return treeDisplayNode;
     }
 
     /*public BufferedImage getImage() {
@@ -69,6 +60,41 @@ public class Node {
         g2.dispose();
         return image;
     } */   
+
+    public boolean contains(Node node) {
+        if(equals(node))
+            return true;
+        for(Node child : children)
+            if(child.contains(node))
+                return true;
+        return false;
+    }
+
+    public Color getColorByScore() {
+        float score;
+        if(isUsingEvaluation()) {
+            score = getEvaluation();
+            score = normalizeTo0To1(score, -1f, 1f);
+        }
+        else if(getPlayouts() > 0)
+            score = (float)getWins()/(float)getPlayouts();
+        else return Color.WHITE;
+
+        int r, g;
+        if(score >= 0.5f) {
+            r = 255 - (int)(255*normalizeTo0To1(score, 0.5f, 1f));
+            g = 255;
+        }
+        else {
+            r = 255;
+            g = (int)(255*normalizeTo0To1(score, 0f, 0.5f));
+        }
+        return new Color(r, g, 0);
+    }  
+
+    private float normalizeTo0To1(float score, float min, float max) {
+        return (score - min) / (max - min);
+    }
 
     public int getHeight() {
         if(getChildren().isEmpty())
@@ -92,7 +118,7 @@ public class Node {
         return (float)getTreeChildrenCountSum()/(float)Math.max(getTreeNonTerminalCount(), 1);
     }
 
-    private int getTreeChildrenCountSum() {
+    public int getTreeChildrenCountSum() {
         if(children.isEmpty())
             return 0;
         int childrenCountSum = children.size();
@@ -102,7 +128,7 @@ public class Node {
         return childrenCountSum;
     }
 
-    private int getTreeNonTerminalCount() {
+    public int getTreeNonTerminalCount() {
         if(children.isEmpty())
             return 0;
         int count = 1;
@@ -189,7 +215,6 @@ public class Node {
 
     public void setEvaluation(float evaluation) {
         this.evaluation = evaluation;
-        usingEvaluation = true;
     }
 
     public void setLabel(String label) {
@@ -215,6 +240,10 @@ public class Node {
         return evaluation;
     }
 
+    public boolean isUsingEvaluation() {
+        return evaluation != Float.NaN;
+    }
+
     public int getPlayouts() {
         return playouts;
     }
@@ -225,5 +254,9 @@ public class Node {
 
     public int[][] getState() {
         return state;
+    }
+
+    public TreeDisplayNode getTreeDisplayNode() {
+        return treeDisplayNode;
     }
 }

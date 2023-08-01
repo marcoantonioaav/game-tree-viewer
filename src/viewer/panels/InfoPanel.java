@@ -11,8 +11,8 @@ import javax.swing.JPanel;
 import viewer.Viewer;
 
 public class InfoPanel extends JPanel {
-    public final int WIDTH = 256;
-    public final int HEIGHT = 256;
+    public final int WIDTH = 240;
+    public final int HEIGHT = 240;
 
     private Viewer viewer;
 
@@ -22,10 +22,9 @@ public class InfoPanel extends JPanel {
     private JLabel branching = new JLabel();
     private JLabel nodeCount = new JLabel();
     private JLabel branchingMean = new JLabel();
-    private JLabel height = new JLabel();
-    private JLabel width = new JLabel();
+    private JLabel dimensions = new JLabel();
 
-    private Font titleFont = new Font("Verdana", Font.BOLD, 18);
+    private final Font TITLE_FONT = new Font("Verdana", Font.BOLD, 18);
     private JLabel node = new JLabel();
     private JLabel tree = new JLabel();
 
@@ -37,7 +36,7 @@ public class InfoPanel extends JPanel {
         this.setFocusable(true);
         setLayout(new FlowLayout(FlowLayout.CENTER, 60, 5));
         
-        node.setFont(titleFont);
+        node.setFont(TITLE_FONT);
         add(node);
         
         add(state);
@@ -45,28 +44,29 @@ public class InfoPanel extends JPanel {
         add(playouts);
         add(branching);
 
-        tree.setFont(titleFont);
+        tree.setFont(TITLE_FONT);
         add(tree);
 
         add(nodeCount);
         add(branchingMean);
-        add(height);
-        add(width);
+        add(dimensions);
     }
 
     public void update() {
         if(viewer.getSelected() != null) {
             state.setText(viewer.getSelected().getLabel());
-            evaluation.setText("Evaluation: "+String.format("%.3f", viewer.getSelected().getEvaluation()));
+            if(viewer.getSelected().isUsingEvaluation())
+                evaluation.setText("Evaluation: "+String.format("%.3f", viewer.getSelected().getEvaluation()));
+            else
+                evaluation.setText("Evaluation: --/--");
             playouts.setText("Playouts (W/P): "+viewer.getSelected().getWins()+"/"+viewer.getSelected().getPlayouts());
             branching.setText("Branching factor: "+viewer.getSelected().getChildren().size());
             nodeCount.setText("Expanded nodes: "+viewer.getSelected().getTreeNodeCount());
             branchingMean.setText("Branching factor (mean): "+String.format("%.2f", viewer.getSelected().getBranchingFactor()));
-            height.setText("Height: "+viewer.getSelected().getHeight());
-            width.setText("Width: "+viewer.getSelected().getWidth());
+            dimensions.setText("Height: "+viewer.getSelected().getHeight()+"   Width: "+viewer.getSelected().getWidth());
 
             node.setText("NODE INFO");
-            tree.setText("TREE ANALYSIS");
+            tree.setText("SUBTREE ANALYSIS");
         }
     }
 }

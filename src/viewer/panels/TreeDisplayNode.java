@@ -7,16 +7,16 @@ import java.awt.Graphics2D;
 import viewer.Node;
 
 public class TreeDisplayNode {
-    public final int NODE_MAX_SIZE = 128;
-    public final int NODE_MIN_SIZE = NODE_MAX_SIZE/4;
+    private final int NODE_MAX_SIZE = 128;
+    private final int NODE_MIN_SIZE = NODE_MAX_SIZE/4;
 
-    public int size = NODE_MAX_SIZE;
-    public int maxWidthPx = 0;
-    public boolean selected = false;
-    public boolean childrenActive = true;
-    public boolean fakeRoot = false;
-    public Node realRoot = null;
-    public boolean drawn = false;
+    private int size = NODE_MAX_SIZE;
+    private int maxWidthPx = 0;
+    private boolean selected = false;
+    private boolean childrenActive = true;
+    private boolean fakeRoot = false;
+    private Node realRoot = null;
+    private boolean drawn = false;
 
     private Node node;
 
@@ -30,7 +30,7 @@ public class TreeDisplayNode {
         setTreeChildrenActive(true);
         setSize(NODE_MIN_SIZE);
         int maxDepth = getTreeHeight();
-        while((nodesToPixels(getTreeHeight()) > maxHeightPx || nodesToPixels(getTreeWidth()) > maxWidthPx) && maxDepth >= 1) {
+        while((nodesToPixels(getTreeHeight()) > maxHeightPx || nodesToPixels(getTreeWidth()) > maxWidthPx) && (maxDepth > 2 || (maxDepth > 1 && !isFakeRoot()))) {
             maxDepth--;
             pruneByDepth(maxDepth);
         }
@@ -110,7 +110,7 @@ public class TreeDisplayNode {
             g2.setColor(Color.BLACK);
         g2.fillOval(getX(), getY(), size, size);
         
-        setColorByScore(g2);
+        g2.setColor(node.getColorByScore());
         int circleThickness = Math.min(size/16, 5);
         if(selected)
             g2.fillOval(getX()+circleThickness*2, getY()+circleThickness*2, size-(circleThickness*4), size-(circleThickness*4));
@@ -118,26 +118,6 @@ public class TreeDisplayNode {
             g2.fillOval(getX()+circleThickness, getY()+circleThickness, size-(circleThickness*2), size-(circleThickness*2));
         g2.setColor(Color.BLACK);
     }
-
-    private void setColorByScore(Graphics2D g2) {
-        float score, min;
-        if(node.isUsingEvaluation()) {
-            score = node.getEvaluation();
-            min = -1f;
-        }
-        else if(node.getPlayouts() > 0) {
-            score = (float)node.getWins()/(float)node.getPlayouts();
-            min = 0f;
-        }
-        else return;
-
-        if(score == 1f)
-            g2.setColor(Color.GREEN);
-        else if(score == min)
-            g2.setColor(Color.RED);
-        else
-            g2.setColor(Color.ORANGE);
-    }  
 
     private void setTreeDrawn(boolean drawn) {
         this.drawn = drawn;
@@ -266,6 +246,8 @@ public class TreeDisplayNode {
     }
 
     public Node getNodeByPosition(int x, int y) {
+        if(!drawn)
+            return null;
         if(isOnLimits(x, y))
             return node;
         for(Node child : node.getChildren()) {
@@ -288,4 +270,11 @@ public class TreeDisplayNode {
         this.realRoot = realRoot;
     }
 
+    public Node getRealRoot() {
+        return realRoot;
+    }
+
+    public boolean isDrawn() {
+        return drawn;
+    }
 }
