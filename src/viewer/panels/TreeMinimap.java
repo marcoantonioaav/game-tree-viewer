@@ -20,6 +20,8 @@ public class TreeMinimap extends JPanel {
     private final int NODE_MIN_SIZE = 4;
     private int nodeSize = NODE_MIN_SIZE;
 
+    private final int MAX_NODE_CAPACITY = 30000;
+
     public TreeMinimap(Viewer viewer) {
         this.viewer = viewer;
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -48,7 +50,8 @@ public class TreeMinimap extends JPanel {
                 g2.fillRect(0, 0, Math.max(nodesToPixels(viewer.getTree().getWidth()), WIDTH), Math.max(nodesToPixels(viewer.getTree().getHeight()), HEIGHT));
             } catch (Exception e) {
             }
-            drawTreeMinimap(g2, viewer.getTree());
+            if(viewer.getTree().getTreeNodeCount() <= MAX_NODE_CAPACITY)
+                drawTreeMinimap(g2, viewer.getTree());
             g2.dispose();
         }
     }
@@ -67,9 +70,15 @@ public class TreeMinimap extends JPanel {
         
         if(node.getFather() != null)
             g2.drawLine(x + nodeSize/2, y, getX(node.getFather()) + nodeSize/2, getY(node.getFather())+nodeSize);
-        g2.setColor(node.getColorByScore());
-        g2.fillOval(x, y, nodeSize, nodeSize);
-        g2.setColor(Color.BLACK);
+        Color nodeColor = node.getColorByScore();
+        if(nodeColor == Color.WHITE)
+            g2.drawOval(x, y, nodeSize, nodeSize);
+        else {
+            g2.setColor(nodeColor);
+            g2.fillOval(x, y, nodeSize, nodeSize);
+            g2.setColor(Color.BLACK);
+        }
+        
         for(Node child : node.getChildren())
              drawTreeMinimap(g2, child);
     }

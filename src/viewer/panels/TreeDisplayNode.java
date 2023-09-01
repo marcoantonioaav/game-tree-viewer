@@ -92,8 +92,15 @@ public class TreeDisplayNode {
     }
 
     private void drawTextOnCenter(Graphics2D g2, String text) {
-        g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, getFontSize()));
+        int fontSize = getFontSize();
+        g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, fontSize));
         int textWidth = (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        int safeSize = size - 4*Math.min(size/16, 5);
+        while(textWidth >= safeSize && fontSize > 0) {
+            fontSize--;
+            g2.setFont(new Font(Font.MONOSPACED, Font.BOLD, fontSize));
+            textWidth = (int)g2.getFontMetrics().getStringBounds(text, g2).getWidth();
+        }
         int textHeight = (int)g2.getFontMetrics().getStringBounds(text, g2).getHeight();
         g2.drawString(text, getX() + size/2 - textWidth/2, getY() + size/2 + textHeight/3);
     } 

@@ -58,8 +58,8 @@ public class InfoPanel extends JPanel {
             if(viewer.getSelected().isUsingEvaluation())
                 evaluation.setText("Evaluation: "+String.format("%.3f", viewer.getSelected().getEvaluation()));
             else
-                evaluation.setText("Evaluation: --/--");
-            playouts.setText("Playouts (W/P): "+viewer.getSelected().getWins()+"/"+viewer.getSelected().getPlayouts());
+                evaluation.setText("Evaluation: None");
+            playouts.setText("Playouts (Q/N): "+viewer.getSelected().getWins()+"/"+viewer.getSelected().getPlayouts());
             branching.setText("Branching factor: "+viewer.getSelected().getChildren().size());
             nodeCount.setText("Expanded nodes: "+viewer.getSelected().getTreeNodeCount());
             branchingMean.setText("Branching factor (mean): "+String.format("%.2f", viewer.getSelected().getBranchingFactor()));

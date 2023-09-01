@@ -1,3 +1,4 @@
+import agent.LoBoGamesAgent;
 import agent.Minimax;
 import agent.SequentialHalving;
 import app.StartDesktopApp;
@@ -10,6 +11,7 @@ public class App {
         Viewer viewer = new Viewer();
         AIRegistry.registerAI("SH", () -> {return new SequentialHalving(viewer);}, (game) -> {return true;});
         AIRegistry.registerAI("MM", () -> {return new Minimax(viewer);}, (game) -> {return true;});
+        AIRegistry.registerAI("LoBoGames", () -> {return new LoBoGamesAgent(viewer);}, (game) -> {return true;});
         StartDesktopApp.main(new String[0]);
         viewer.start();
     }

@@ -72,13 +72,13 @@ public class Node {
 
     public Color getColorByScore() {
         float score;
-        if(isUsingEvaluation()) {
+        if(isUsingEvaluation())
             score = getEvaluation();
-            score = normalizeTo0To1(score, -1f, 1f);
-        }
         else if(getPlayouts() > 0)
             score = (float)getWins()/(float)getPlayouts();
         else return Color.WHITE;
+
+        score = normalizeTo0To1(score, -1f, 1f);
 
         int r, g;
         if(score >= 0.5f) {
@@ -188,6 +188,16 @@ public class Node {
             pieces = containerState.cloneWhoVertex();
             emptyPieces = containerState.emptyChunkSetVertex();
         }
+        else if(ludiiContext.game().name().equals("Reversi")) {
+            pieces = containerState.cloneWhatCell();
+            for(int i=0; i<64; i++) {
+                if(containerState.stateCell(i) == 1)
+                    pieces.setChunk(i, 2);
+                if(containerState.stateCell(i) == 2)
+                    pieces.setChunk(i, 1);
+            }
+            emptyPieces = containerState.emptyChunkSetCell();
+        }
         else {
             pieces = containerState.cloneWhoCell();
             emptyPieces = containerState.emptyChunkSetCell();
@@ -241,7 +251,7 @@ public class Node {
     }
 
     public boolean isUsingEvaluation() {
-        return evaluation != Float.NaN;
+        return !Float.isNaN(evaluation);
     }
 
     public int getPlayouts() {
