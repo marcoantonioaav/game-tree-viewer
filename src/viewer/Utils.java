@@ -22,10 +22,10 @@ public abstract class Utils {
         return image;
     }
 
-    public static void saveImage(BufferedImage image, String folderPath, String imageName, String format) {
-        File file = new File(folderPath+imageName+"."+format);
+    public static void saveImage(BufferedImage image, String absolutePath, String extension) {
+        File file = new File(absolutePath+extension);
         try { 
-            ImageIO.write(image, format, file);
+            ImageIO.write(image, extension.substring(1), file);
         } catch (IOException ex) {
             ex.printStackTrace();
         }

@@ -70,7 +70,7 @@ public class TreeMinimap extends JPanel {
         
         if(node.getFather() != null)
             g2.drawLine(x + nodeSize/2, y, getX(node.getFather()) + nodeSize/2, getY(node.getFather())+nodeSize);
-        Color nodeColor = node.getColorByScore();
+        Color nodeColor = node.getTreeDisplayNode().getColor();
         if(nodeColor == Color.WHITE)
             g2.drawOval(x, y, nodeSize, nodeSize);
         else {

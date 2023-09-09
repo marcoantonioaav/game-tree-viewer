@@ -13,8 +13,8 @@ import viewer.Node;
 import viewer.Viewer;
 
 public class TreeDisplay extends JPanel implements MouseListener {
-    public final int WIDTH = 720;
-    public final int HEIGHT = 720;
+    public static final int WIDTH = 720;
+    public static final int HEIGHT = 720;
 
     private Viewer viewer;
     private Node root;
@@ -46,6 +46,8 @@ public class TreeDisplay extends JPanel implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if(root == null)
+            return;
         Node selected = root.getTreeDisplayNode().getNodeByPosition(e.getX(), e.getY());
         if(selected != null) {  
             if(e.getClickCount() == 2) {
@@ -86,6 +88,10 @@ public class TreeDisplay extends JPanel implements MouseListener {
     public Node getRealRoot() {
         if(root.getTreeDisplayNode().isFakeRoot())
             return root.getTreeDisplayNode().getRealRoot();
+        return root;
+    }
+
+    public Node getRoot() {
         return root;
     }
 }

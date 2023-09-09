@@ -3,8 +3,10 @@ package viewer.panels;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 import viewer.Node;
+import viewer.Utils;
 
 public class TreeDisplayNode {
     private final int NODE_MAX_SIZE = 128;
@@ -18,11 +20,25 @@ public class TreeDisplayNode {
     private Node realRoot = null;
     private boolean drawn = false;
 
+    public static final int AUTO = -1;
+    public static final int NOTHING = 0;
+    public static final int EVALUATION = 1;
+    public static final int PLAYOUTS = 2;
+    private int colorBy = AUTO;
+
     private Node node;
 
     public TreeDisplayNode(Node node) {
         this.node = node;
     }
+
+    public BufferedImage getImage() {
+        BufferedImage image = Utils.newWhiteImage(TreeDisplay.WIDTH, TreeDisplay.HEIGHT);
+        Graphics2D g2 = image.createGraphics();
+        drawTreeNavigation(g2, TreeDisplay.WIDTH, TreeDisplay.HEIGHT);
+        g2.dispose();
+        return image;
+    } 
 
     public void drawTreeNavigation(Graphics2D g2, int maxWidthPx, int maxHeightPx) {
         this.maxWidthPx = maxWidthPx;
@@ -117,13 +133,33 @@ public class TreeDisplayNode {
             g2.setColor(Color.BLACK);
         g2.fillOval(getX(), getY(), size, size);
         
-        g2.setColor(node.getColorByScore());
+        g2.setColor(getColor());
         int circleThickness = Math.min(size/16, 5);
         if(selected)
             g2.fillOval(getX()+circleThickness*2, getY()+circleThickness*2, size-(circleThickness*4), size-(circleThickness*4));
         else
             g2.fillOval(getX()+circleThickness, getY()+circleThickness, size-(circleThickness*2), size-(circleThickness*2));
         g2.setColor(Color.BLACK);
+    }
+
+    public Color getColor() {
+        if(colorBy == AUTO) {
+            if(node.isUsingEvaluation())
+                colorBy = EVALUATION;
+            else if(node.getPlayouts() > 0)
+                colorBy = PLAYOUTS;
+            else
+                return Color.WHITE;
+        }
+        if(colorBy == EVALUATION)
+            return Node.getColorByScore(node.getEvaluation());
+        if(colorBy == PLAYOUTS)
+            return Node.getColorByScore((float)node.getWins()/(float)node.getPlayouts());
+        return Color.WHITE;
+    }
+
+    public int getColorBy() {
+        return colorBy;
     }
 
     private void setTreeDrawn(boolean drawn) {
@@ -283,5 +319,11 @@ public class TreeDisplayNode {
 
     public boolean isDrawn() {
         return drawn;
+    }
+
+    public void setColorBy(int colorBy) {
+        this.colorBy = colorBy;
+        for(Node child : node.getChildren())
+            child.getTreeDisplayNode().setColorBy(colorBy);
     }
 }

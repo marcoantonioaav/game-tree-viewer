@@ -5,14 +5,22 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
 
+import javax.swing.ButtonGroup;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.filechooser.FileFilter;
 
+import viewer.panels.TreeDisplayNode;
 import viewer.panels.TreeMinimap;
 
 public class Window extends JFrame implements ActionListener {
@@ -42,10 +50,16 @@ public class Window extends JFrame implements ActionListener {
         setVisible(true);
     }
 
+    private JRadioButtonMenuItem nothing, evaluation, playouts; 
+
     private void addMenuBar() {
         JMenuBar menuBar = new JMenuBar();
-        JMenu file, edit, help;
+        JMenu file, edit, help, colorBy;
         JMenuItem save, saveAs, open, export;
+        
+        ButtonGroup colorByGroup = new ButtonGroup();
+        ItemListener itemListener = new EditItemListener();
+
         file = new JMenu("File");
         open = new JMenuItem("Open...");
         open.addActionListener(this);
@@ -53,18 +67,42 @@ public class Window extends JFrame implements ActionListener {
         save.addActionListener(this);
         saveAs = new JMenuItem("Save as...");
         saveAs.addActionListener(this);
-        export = new JMenuItem("Export");
+        export = new JMenuItem("Export...");
         export.addActionListener(this);
         file.add(open);
         file.add(save);
         file.add(saveAs);
         file.add(export);
         edit = new JMenu("Edit");
+        colorBy = new JMenu("Color by...");
+        nothing = new JRadioButtonMenuItem("Nothing");
+        nothing.addItemListener(itemListener);
+        evaluation = new JRadioButtonMenuItem("Evaluation");
+        evaluation.addItemListener(itemListener);
+        playouts = new JRadioButtonMenuItem("Playouts");
+        playouts.addItemListener(itemListener);
+        colorByGroup.add(nothing);
+        colorByGroup.add(evaluation);
+        colorByGroup.add(playouts);
+        colorBy.add(nothing);
+        colorBy.add(evaluation);
+        colorBy.add(playouts);
+        edit.add(colorBy);
         help = new JMenu("Help");
         menuBar.add(file);
         menuBar.add(edit);
         menuBar.add(help);
         setJMenuBar(menuBar);
+    }
+
+    public void updateColorBy() {
+        if(viewer.getTree() == null) 
+            return;
+        if(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.AUTO)
+            viewer.getTree().getTreeDisplayNode().getColor();
+        nothing.setSelected(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.NOTHING);
+        evaluation.setSelected(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.EVALUATION);
+        playouts.setSelected(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.PLAYOUTS);
     }
 
     @Override
@@ -79,12 +117,68 @@ public class Window extends JFrame implements ActionListener {
             case "Save as...":
                 System.out.println(e.getActionCommand());
                 break;
-            case "Export":
-                if(viewer.getTree() != null)
-                    viewer.export();
+            case "Export...":
+                if(viewer.getTree() != null) {
+                    JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    fileChooser.addChoosableFileFilter(new FileTypeFilter(".png", "PNG"));
+                    fileChooser.addChoosableFileFilter(new FileTypeFilter(".gif", "GIF"));
+                    fileChooser.addChoosableFileFilter(new FileTypeFilter(".jpg", "JPG"));
+                    if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                        viewer.export(fileChooser.getSelectedFile().getAbsolutePath(), ((FileTypeFilter)fileChooser.getFileFilter()).getExtension());
+                    }
+                }
+                break;
+            case "Nothing":
+                System.out.println(e.getActionCommand());
                 break;
             default:
                 break;
+        }
+    }
+
+    private class FileTypeFilter extends FileFilter {
+        private String extension;
+        private String description;
+     
+        public FileTypeFilter(String extension, String description) {
+            this.extension = extension;
+            this.description = description;
+        }
+     
+        public boolean accept(File file) {
+            if (file.isDirectory()) {
+                return true;
+            }
+            return file.getName().endsWith(extension);
+        }
+     
+        public String getDescription() {
+            return description + String.format(" (*%s)", extension);
+        }
+
+        public String getExtension() {
+            return extension;
+        }
+    }
+
+    private class EditItemListener implements ItemListener {
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                String selectedName = ((JRadioButtonMenuItem)e.getItem()).getText();
+                if(selectedName == "Nothing") {
+                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.NOTHING);
+                }
+                else if(selectedName == "Evaluation") {
+                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.EVALUATION);
+                }
+                else if(selectedName == "Playouts") {
+                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.PLAYOUTS);
+                }
+                viewer.getTreeDisplay().repaint();
+                viewer.getTreeMinimap().update();
+            }
         }
     }
 }

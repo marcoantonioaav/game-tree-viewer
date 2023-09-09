@@ -51,15 +51,7 @@ public class Node {
         setState(ludiiContext);
         setLabel(ludiiContext);
         this.evaluation = evaluation;
-    }
-
-    /*public BufferedImage getImage() {
-        BufferedImage image = Utils.newWhiteImage(nodesToPixels(getTreeWidth()), nodesToPixels(getTreeHeight()));
-        Graphics2D g2 = image.createGraphics();
-        //drawTreeNavigation(g2);
-        g2.dispose();
-        return image;
-    } */   
+    }  
 
     public boolean contains(Node node) {
         if(equals(node))
@@ -70,14 +62,7 @@ public class Node {
         return false;
     }
 
-    public Color getColorByScore() {
-        float score;
-        if(isUsingEvaluation())
-            score = getEvaluation();
-        else if(getPlayouts() > 0)
-            score = (float)getWins()/(float)getPlayouts();
-        else return Color.WHITE;
-
+    public static Color getColorByScore(float score) {
         score = normalizeTo0To1(score, -1f, 1f);
 
         int r, g;
@@ -92,7 +77,7 @@ public class Node {
         return new Color(r, g, 0);
     }  
 
-    private float normalizeTo0To1(float score, float min, float max) {
+    private static float normalizeTo0To1(float score, float min, float max) {
         return (score - min) / (max - min);
     }
 

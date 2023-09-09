@@ -7,6 +7,7 @@ import viewer.panels.TreeMinimap;
 
 public class Viewer extends Thread {
     private String title = "Game tree viewer";
+    private Window window = null;
     private TreeDisplay treeDisplay = new TreeDisplay(this);
     private StateDisplay stateDisplay = new StateDisplay(this);
     private InfoPanel infoPanel = new InfoPanel(this);
@@ -29,12 +30,11 @@ public class Viewer extends Thread {
 
     @Override
     public void run() {
-        new Window(this);
+        window = new Window(this);
     }
 
-    @Deprecated
-    public void export() {
-        //Utils.saveImage(tree.getImage(), "C:\\Users\\MarcoAntonio\\Documents\\GitHub\\game-tree-viewer\\", "test", "png");
+    public void export(String absolutePath, String format) {
+        Utils.saveImage(treeDisplay.getRoot().getTreeDisplayNode().getImage(), absolutePath, format);
     }
 
     public Node getTree() {
@@ -45,6 +45,7 @@ public class Viewer extends Thread {
         this.tree = tree;
         setSelected(tree);
         treeDisplay.setRoot(tree);
+        window.updateColorBy();
     }
 
     public String getTitle() {
