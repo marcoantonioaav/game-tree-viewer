@@ -29,8 +29,20 @@ public class TreeDisplay extends JPanel implements MouseListener {
         this.addMouseListener(this);
     }
 
-    public void setRoot(Node root) {
-        this.root = root;
+    public void setRoot(Node selected) {
+        if(root == null)
+            root = selected;
+        else {
+            root.getTreeDisplayNode().setFakeRoot(false);
+            root.getTreeDisplayNode().setRealRoot(null);
+            if(selected.getFather() != null) {
+                selected.getFather().getTreeDisplayNode().setFakeRoot(true);
+                selected.getFather().getTreeDisplayNode().setRealRoot(selected);
+                root = selected.getFather();
+            }
+            else 
+                root = selected;
+        }
         repaint();
     }
 
@@ -50,17 +62,8 @@ public class TreeDisplay extends JPanel implements MouseListener {
             return;
         Node selected = root.getTreeDisplayNode().getNodeByPosition(e.getX(), e.getY());
         if(selected != null) {  
-            if(e.getClickCount() == 2) {
-                root.getTreeDisplayNode().setFakeRoot(false);
-                root.getTreeDisplayNode().setRealRoot(null);
-                if(selected.getFather() != null) {
-                    selected.getFather().getTreeDisplayNode().setFakeRoot(true);
-                    selected.getFather().getTreeDisplayNode().setRealRoot(selected);
-                    root = selected.getFather();
-                }
-                else 
-                    root = selected;
-            }
+            if(e.getClickCount() == 2)
+                setRoot(selected);
             viewer.setSelected(selected);
         }
     }

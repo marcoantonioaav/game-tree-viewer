@@ -50,6 +50,8 @@ public class InfoPanel extends JPanel {
         add(nodeCount);
         add(branchingMean);
         add(dimensions);
+
+        addToolTips();
     }
 
     public void update() {
@@ -68,5 +70,15 @@ public class InfoPanel extends JPanel {
             node.setText("NODE INFO");
             tree.setText("SUBTREE ANALYSIS");
         }
+    }
+
+    private void addToolTips() {
+        state.setToolTipText("Node's board state");
+        evaluation.setToolTipText("Numeric evaluation of the node's reward on the range [-1, 1]");
+        playouts.setToolTipText("Playouts (also called rollouts) are random simulated games. Q is the sum of playout rewards and N is the number of playouts made");
+        branching.setToolTipText("Node's children (branches) count");
+        nodeCount.setToolTipText("Subtree node count");
+        branchingMean.setToolTipText("Average branching factor of all non-leaf nodes in the subtree");
+        dimensions.setToolTipText("Subtree height and width");
     }
 }

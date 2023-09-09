@@ -23,7 +23,7 @@ import javax.swing.filechooser.FileFilter;
 import viewer.panels.TreeDisplayNode;
 import viewer.panels.TreeMinimap;
 
-public class Window extends JFrame implements ActionListener {
+public class Window extends JFrame implements ActionListener, ItemListener{
     private Viewer viewer;
 
     private JPanel sidePanel = new JPanel(new GridLayout(0, 1, 0, 0));
@@ -55,10 +55,9 @@ public class Window extends JFrame implements ActionListener {
     private void addMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu file, edit, help, colorBy;
-        JMenuItem save, saveAs, open, export;
+        JMenuItem save, saveAs, open, export, goToRoot;
         
         ButtonGroup colorByGroup = new ButtonGroup();
-        ItemListener itemListener = new EditItemListener();
 
         file = new JMenu("File");
         open = new JMenuItem("Open...");
@@ -76,17 +75,20 @@ public class Window extends JFrame implements ActionListener {
         edit = new JMenu("Edit");
         colorBy = new JMenu("Color by...");
         nothing = new JRadioButtonMenuItem("Nothing");
-        nothing.addItemListener(itemListener);
+        nothing.addItemListener(this);
         evaluation = new JRadioButtonMenuItem("Evaluation");
-        evaluation.addItemListener(itemListener);
+        evaluation.addItemListener(this);
         playouts = new JRadioButtonMenuItem("Playouts");
-        playouts.addItemListener(itemListener);
+        playouts.addItemListener(this);
         colorByGroup.add(nothing);
         colorByGroup.add(evaluation);
         colorByGroup.add(playouts);
         colorBy.add(nothing);
         colorBy.add(evaluation);
         colorBy.add(playouts);
+        goToRoot = new JMenuItem("Go to root");
+        goToRoot.addActionListener(this);
+        edit.add(goToRoot);
         edit.add(colorBy);
         help = new JMenu("Help");
         menuBar.add(file);
@@ -129,11 +131,30 @@ public class Window extends JFrame implements ActionListener {
                     }
                 }
                 break;
-            case "Nothing":
-                System.out.println(e.getActionCommand());
+            case "Go to root":
+                viewer.getTreeDisplay().setRoot(viewer.getTree());
+                viewer.setSelected(viewer.getTree());
                 break;
             default:
                 break;
+        }
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        if(e.getStateChange() == ItemEvent.SELECTED) {
+            String selectedName = ((JRadioButtonMenuItem)e.getItem()).getText();
+            if(selectedName == "Nothing") {
+                viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.NOTHING);
+            }
+            else if(selectedName == "Evaluation") {
+                viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.EVALUATION);
+            }
+            else if(selectedName == "Playouts") {
+                viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.PLAYOUTS);
+            }
+            viewer.getTreeDisplay().repaint();
+            viewer.getTreeMinimap().update();
         }
     }
 
@@ -159,26 +180,6 @@ public class Window extends JFrame implements ActionListener {
 
         public String getExtension() {
             return extension;
-        }
-    }
-
-    private class EditItemListener implements ItemListener {
-        @Override
-        public void itemStateChanged(ItemEvent e) {
-            if(e.getStateChange() == ItemEvent.SELECTED) {
-                String selectedName = ((JRadioButtonMenuItem)e.getItem()).getText();
-                if(selectedName == "Nothing") {
-                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.NOTHING);
-                }
-                else if(selectedName == "Evaluation") {
-                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.EVALUATION);
-                }
-                else if(selectedName == "Playouts") {
-                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.PLAYOUTS);
-                }
-                viewer.getTreeDisplay().repaint();
-                viewer.getTreeMinimap().update();
-            }
         }
     }
 }
