@@ -26,6 +26,8 @@ public class TreeDisplayNode {
     public static final int PLAYOUTS = 2;
     private int colorBy = AUTO;
 
+    private boolean showCursor = true;
+
     private Node node;
 
     public TreeDisplayNode(Node node) {
@@ -55,6 +57,8 @@ public class TreeDisplayNode {
             smallSize++;
             setSize(smallSize);
         }
+        if(nodesToPixels(getTreeWidth()) > maxWidthPx)
+            this.maxWidthPx = nodesToPixels(getTreeWidth());
         drawTreeNavigation(g2);
     }
 
@@ -70,8 +74,8 @@ public class TreeDisplayNode {
         drawEdge(g2);
         if(node.isUsingEvaluation())   
             drawTextOnCenter(g2, String.format("%.1f", node.getEvaluation()));
-        else if(node.getPlayouts() > 0)
-            drawTextOnCenter(g2, node.getWins()+"/"+node.getPlayouts());
+        else if(node.getPlayoutsN() > 0)
+            drawTextOnCenter(g2, node.getPlayoutsQ()+"/"+node.getPlayoutsN());
         
         for(Node child : node.getChildren())
             if(childrenActive)
@@ -127,7 +131,7 @@ public class TreeDisplayNode {
     }
 
     private void drawCircle(Graphics2D g2) {
-        if(selected)
+        if(selected && showCursor)
             g2.setColor(Color.BLUE);
         else
             g2.setColor(Color.BLACK);
@@ -135,7 +139,7 @@ public class TreeDisplayNode {
         
         g2.setColor(getColor());
         int circleThickness = Math.min(size/16, 5);
-        if(selected)
+        if(selected && showCursor)
             g2.fillOval(getX()+circleThickness*2, getY()+circleThickness*2, size-(circleThickness*4), size-(circleThickness*4));
         else
             g2.fillOval(getX()+circleThickness, getY()+circleThickness, size-(circleThickness*2), size-(circleThickness*2));
@@ -146,7 +150,7 @@ public class TreeDisplayNode {
         if(colorBy == AUTO) {
             if(node.isUsingEvaluation())
                 colorBy = EVALUATION;
-            else if(node.getPlayouts() > 0)
+            else if(node.getPlayoutsN() > 0)
                 colorBy = PLAYOUTS;
             else
                 return Color.WHITE;
@@ -154,7 +158,7 @@ public class TreeDisplayNode {
         if(colorBy == EVALUATION)
             return Node.getColorByScore(node.getEvaluation());
         if(colorBy == PLAYOUTS)
-            return Node.getColorByScore((float)node.getWins()/(float)node.getPlayouts());
+            return Node.getColorByScore((float)node.getPlayoutsQ()/(float)node.getPlayoutsN());
         return Color.WHITE;
     }
 
@@ -325,5 +329,15 @@ public class TreeDisplayNode {
         this.colorBy = colorBy;
         for(Node child : node.getChildren())
             child.getTreeDisplayNode().setColorBy(colorBy);
+    }
+
+    public void setShowCursor(boolean showCursor) {
+        this.showCursor = showCursor;
+        for(Node child : node.getChildren())
+            child.getTreeDisplayNode().setShowCursor(showCursor);
+    }
+
+    public boolean getShowCursor() {
+        return showCursor;
     }
 }

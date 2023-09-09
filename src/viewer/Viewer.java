@@ -45,7 +45,7 @@ public class Viewer extends Thread {
         this.tree = tree;
         setSelected(tree);
         treeDisplay.setRoot(tree);
-        window.updateColorBy();
+        window.update();
     }
 
     public String getTitle() {

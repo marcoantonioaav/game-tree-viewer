@@ -68,7 +68,7 @@ public class LoBoGamesAgent extends AI {
         Node node = new Node(context);
         node.setFather(father);
         if(depth == 0 || context.trial().over()) {
-            float evaluation = evaluate(context, isMaximizing);
+            float evaluation = evaluate(context, isMaximizing, node);
             node.setEvaluation(evaluation);
             return evaluation;
         }
@@ -104,13 +104,13 @@ public class LoBoGamesAgent extends AI {
             return minValue;
         }
     }
-    private float evaluate(Context context, boolean isMaximizing) {
+    private float evaluate(Context context, boolean isMaximizing, Node node) {
         if(context.trial().over())
             return evaluateTerminalState(context);
         int startingPlayer = player;
         if(!isMaximizing)
             startingPlayer = 1 - player;
-        return evaluateWithPlayouts(context, startingPlayer);
+        return evaluateWithPlayouts(context, startingPlayer, node);
     }
 
     private float evaluateTerminalState(Context context) {
@@ -121,10 +121,11 @@ public class LoBoGamesAgent extends AI {
         return NEUTRAL;
     }
 
-    private float evaluateWithPlayouts(Context context, int startingPlayer) {
+    private float evaluateWithPlayouts(Context context, int startingPlayer, Node node) {
         float evaluation = 0f;
         for(int p = 0; p < EVALUATION_PLAYOUTS; p++)
             evaluation += makePlayout(context, startingPlayer);
+        node.setPlayouts((int)evaluation, EVALUATION_PLAYOUTS);
         return evaluation/EVALUATION_PLAYOUTS;
     }
 

@@ -19,8 +19,8 @@ public class Node {
 
     private String label = "";
     private int[][] state = null;
-    private int wins = 0;
-    private int playouts = 0;
+    private int playoutsQ = 0;
+    private int playoutsN = 0;
     private float evaluation = Float.NaN;
 
     private TreeDisplayNode treeDisplayNode = new TreeDisplayNode(this);
@@ -43,8 +43,8 @@ public class Node {
     public Node(Context ludiiContext, int wins, int playouts) {
         setState(ludiiContext);
         setLabel(ludiiContext);
-        this.wins = wins;
-        this.playouts = playouts;
+        this.playoutsQ = wins;
+        this.playoutsN = playouts;
     }
 
     public Node(Context ludiiContext, int evaluation) {
@@ -203,9 +203,9 @@ public class Node {
         this.state = state;
     }
 
-    public void setPlayouts(int wins, int playouts) {
-        this.wins = wins;
-        this.playouts = playouts;
+    public void setPlayouts(int q, int n) {
+        this.playoutsQ = q;
+        this.playoutsN = n;
     }
 
     public void setEvaluation(float evaluation) {
@@ -239,12 +239,12 @@ public class Node {
         return !Float.isNaN(evaluation);
     }
 
-    public int getPlayouts() {
-        return playouts;
+    public int getPlayoutsN() {
+        return playoutsN;
     }
 
-    public int getWins() {
-        return wins;
+    public int getPlayoutsQ() {
+        return playoutsQ;
     }
 
     public int[][] getState() {

@@ -10,6 +10,7 @@ import java.awt.event.ItemListener;
 import java.io.File;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -20,6 +21,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.filechooser.FileFilter;
 
+import viewer.panels.TreeDisplay;
 import viewer.panels.TreeDisplayNode;
 import viewer.panels.TreeMinimap;
 
@@ -36,13 +38,17 @@ public class Window extends JFrame implements ActionListener, ItemListener{
         setTitle(viewer.getTitle());
         setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         addMenuBar();
-        add(viewer.getTreeDisplay());
+
+        JScrollPane displayScroller = new JScrollPane(viewer.getTreeDisplay(), JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        displayScroller.setPreferredSize(new Dimension(TreeDisplay.WIDTH + 5, TreeDisplay.HEIGHT));
+        add(displayScroller);
+
         sidePanel.add(viewer.getStateDisplay());
         sidePanel.add(viewer.getInfoPanel());
 
-        JScrollPane scroller = new JScrollPane(viewer.getTreeMinimap(), JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scroller.setPreferredSize(new Dimension(TreeMinimap.WIDTH, TreeMinimap.HEIGHT));
-        sidePanel.add(scroller);
+        JScrollPane minimapScroller = new JScrollPane(viewer.getTreeMinimap(), JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        minimapScroller.setPreferredSize(new Dimension(TreeMinimap.WIDTH, TreeMinimap.HEIGHT));
+        sidePanel.add(minimapScroller);
         add(sidePanel);
         pack();
         
@@ -51,26 +57,20 @@ public class Window extends JFrame implements ActionListener, ItemListener{
     }
 
     private JRadioButtonMenuItem nothing, evaluation, playouts; 
+    private JCheckBoxMenuItem showCursor;
 
     private void addMenuBar() {
         JMenuBar menuBar = new JMenuBar();
         JMenu file, edit, help, colorBy;
-        JMenuItem save, saveAs, open, export, goToRoot;
+        JMenuItem export, goToRoot;
         
         ButtonGroup colorByGroup = new ButtonGroup();
 
         file = new JMenu("File");
-        open = new JMenuItem("Open...");
-        open.addActionListener(this);
-        save = new JMenuItem("Save");
-        save.addActionListener(this);
-        saveAs = new JMenuItem("Save as...");
-        saveAs.addActionListener(this);
+
         export = new JMenuItem("Export...");
         export.addActionListener(this);
-        file.add(open);
-        file.add(save);
-        file.add(saveAs);
+        
         file.add(export);
         edit = new JMenu("Edit");
         colorBy = new JMenu("Color by...");
@@ -88,8 +88,11 @@ public class Window extends JFrame implements ActionListener, ItemListener{
         colorBy.add(playouts);
         goToRoot = new JMenuItem("Go to root");
         goToRoot.addActionListener(this);
+        showCursor = new JCheckBoxMenuItem("Show cursor");
+        showCursor.addItemListener(this);
         edit.add(goToRoot);
         edit.add(colorBy);
+        edit.add(showCursor);
         help = new JMenu("Help");
         menuBar.add(file);
         menuBar.add(edit);
@@ -97,7 +100,7 @@ public class Window extends JFrame implements ActionListener, ItemListener{
         setJMenuBar(menuBar);
     }
 
-    public void updateColorBy() {
+    public void update() {
         if(viewer.getTree() == null) 
             return;
         if(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.AUTO)
@@ -105,20 +108,13 @@ public class Window extends JFrame implements ActionListener, ItemListener{
         nothing.setSelected(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.NOTHING);
         evaluation.setSelected(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.EVALUATION);
         playouts.setSelected(viewer.getTree().getTreeDisplayNode().getColorBy() == TreeDisplayNode.PLAYOUTS);
+
+        showCursor.setSelected(viewer.getTree().getTreeDisplayNode().getShowCursor());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         switch (e.getActionCommand()) {
-            case "Open...":
-                System.out.println(e.getActionCommand());
-                break;
-            case "Save":
-                System.out.println(e.getActionCommand());
-                break;
-            case "Save as...":
-                System.out.println(e.getActionCommand());
-                break;
             case "Export...":
                 if(viewer.getTree() != null) {
                     JFileChooser fileChooser = new JFileChooser();
@@ -142,19 +138,30 @@ public class Window extends JFrame implements ActionListener, ItemListener{
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        if(e.getStateChange() == ItemEvent.SELECTED) {
-            String selectedName = ((JRadioButtonMenuItem)e.getItem()).getText();
-            if(selectedName == "Nothing") {
-                viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.NOTHING);
+        if(e.getItem().getClass() == JRadioButtonMenuItem.class) {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                String selectedName = ((JRadioButtonMenuItem)e.getItem()).getText();
+                if(selectedName == "Nothing") {
+                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.NOTHING);
+                }
+                else if(selectedName == "Evaluation") {
+                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.EVALUATION);
+                }
+                else if(selectedName == "Playouts") {
+                    viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.PLAYOUTS);
+                }
+                viewer.getTreeDisplay().repaint();
+                viewer.getTreeMinimap().update();
             }
-            else if(selectedName == "Evaluation") {
-                viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.EVALUATION);
+        }
+        else {
+            if(e.getStateChange() == ItemEvent.SELECTED) {
+                viewer.getTree().getTreeDisplayNode().setShowCursor(true);
             }
-            else if(selectedName == "Playouts") {
-                viewer.getTree().getTreeDisplayNode().setColorBy(TreeDisplayNode.PLAYOUTS);
+            else {
+                viewer.getTree().getTreeDisplayNode().setShowCursor(false);
             }
             viewer.getTreeDisplay().repaint();
-            viewer.getTreeMinimap().update();
         }
     }
 

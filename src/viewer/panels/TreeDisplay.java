@@ -52,6 +52,8 @@ public class TreeDisplay extends JPanel implements MouseListener {
         if(root != null) {
             Graphics2D g2 = (Graphics2D)g;
             root.getTreeDisplayNode().drawTreeNavigation(g2, WIDTH, HEIGHT);
+            setPreferredSize(new Dimension(root.getTreeDisplayNode().nodesToPixels(root.getTreeDisplayNode().getTreeWidth()), HEIGHT));
+            revalidate();
             g2.dispose();
         }
     }
