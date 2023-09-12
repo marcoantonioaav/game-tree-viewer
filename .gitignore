@@ -6,3 +6,4 @@ src/viewer/tests/
 *.png
 src/agent/LoBoGamesAgentWithoutViewer.java
 src/agent/RunCustomMatch.java
+.vscode/settings.json

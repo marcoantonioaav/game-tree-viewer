@@ -1,9 +1,8 @@
 package viewer;
-
-import viewer.panels.InfoPanel;
-import viewer.panels.StateDisplay;
-import viewer.panels.TreeDisplay;
-import viewer.panels.TreeMinimap;
+import panels.InfoPanel;
+import panels.StateDisplay;
+import panels.TreeDisplay;
+import panels.TreeMinimap;
 
 public class Viewer extends Thread {
     private String title = "Game tree viewer";

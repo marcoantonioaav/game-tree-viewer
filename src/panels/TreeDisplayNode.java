@@ -1,4 +1,4 @@
-package viewer.panels;
+package panels;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -28,6 +28,8 @@ public class TreeDisplayNode {
 
     private boolean showCursor = true;
 
+    private int nodeStyle;
+
     private Node node;
 
     public TreeDisplayNode(Node node) {
@@ -35,9 +37,9 @@ public class TreeDisplayNode {
     }
 
     public BufferedImage getImage() {
-        BufferedImage image = Utils.newWhiteImage(TreeDisplay.WIDTH, TreeDisplay.HEIGHT);
+        BufferedImage image = Utils.newWhiteImage(TreeDisplay.WIDTH*2, TreeDisplay.HEIGHT);
         Graphics2D g2 = image.createGraphics();
-        drawTreeNavigation(g2, TreeDisplay.WIDTH, TreeDisplay.HEIGHT);
+        drawTreeNavigation(g2, TreeDisplay.WIDTH*2, TreeDisplay.HEIGHT);
         g2.dispose();
         return image;
     } 

@@ -1,5 +1,4 @@
 package viewer;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +6,7 @@ import java.util.List;
 import main.collections.ChunkSet;
 import other.context.Context;
 import other.state.container.ContainerState;
-import viewer.panels.TreeDisplayNode;
+import panels.TreeDisplayNode;
 
 public class Node {
     private Node father = null;

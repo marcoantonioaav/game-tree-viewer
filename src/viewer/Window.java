@@ -1,5 +1,4 @@
 package viewer;
-
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -21,9 +20,9 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.filechooser.FileFilter;
 
-import viewer.panels.TreeDisplay;
-import viewer.panels.TreeDisplayNode;
-import viewer.panels.TreeMinimap;
+import panels.TreeDisplay;
+import panels.TreeDisplayNode;
+import panels.TreeMinimap;
 
 public class Window extends JFrame implements ActionListener, ItemListener{
     private Viewer viewer;
