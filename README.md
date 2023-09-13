@@ -2,7 +2,7 @@
  
 A general visualization tool for AI agents applied to zero-sum games.
 
-![Game Tree Viewer](/overview.png "Game Tree Viewer overview")
+![Game Tree Viewer](overview.PNG "Game Tree Viewer overview")
 
 ## How to use
 
