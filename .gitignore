@@ -2,8 +2,4 @@
 ludii.trl
 ludii_preferences.json
 *.jar
-src/viewer/tests/
-*.png
-src/agent/LoBoGamesAgentWithoutViewer.java
-src/agent/RunCustomMatch.java
 .vscode/settings.json
